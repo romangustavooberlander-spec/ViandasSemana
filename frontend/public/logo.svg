@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="ViandasSemana">
+  <!-- Una vianda con los aros de un calendario. Las cinco porciones son los días de lunes a
+       viernes, y la verde con el tilde es la vianda que ya reservaste. -->
+  <rect x="6" y="12" width="52" height="14" rx="6" fill="#B93A12"/>
+  <rect x="9" y="21" width="46" height="35" rx="9" fill="#E8602C"/>
+  <rect x="18" y="5" width="6" height="14" rx="3" fill="#2B2118"/>
+  <rect x="40" y="5" width="6" height="14" rx="3" fill="#2B2118"/>
+  <g fill="#FFF4E6">
+    <rect x="15" y="30" width="9" height="9" rx="2.5"/>
+    <rect x="27.5" y="30" width="9" height="9" rx="2.5"/>
+    <rect x="40" y="30" width="9" height="9" rx="2.5"/>
+    <rect x="21.25" y="42" width="9" height="9" rx="2.5"/>
+  </g>
+  <rect x="33.75" y="42" width="9" height="9" rx="2.5" fill="#3F8F5A"/>
+  <path d="M35.8 46.6l1.9 1.9 3.2-3.6" fill="none" stroke="#FFF4E6" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
