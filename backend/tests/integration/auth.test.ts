@@ -5,7 +5,7 @@ import request from 'supertest';
 import jwt from 'jsonwebtoken';
 import { crearApp } from '../../src/app';
 import { prisma } from '../../src/lib/prisma';
-import { autenticar, permitir } from '../../src/middleware/auth';
+import { autenticar, exigirRol } from '../../src/middleware/auth';
 import { manejadorErrores } from '../../src/middleware/errorHandler';
 
 const app = crearApp({ corsOrigins: ['http://localhost:5173'] });
@@ -87,7 +87,7 @@ describe('Endpoints protegidos (401)', () => {
 describe('Control por rol (403)', () => {
   // Ruta de prueba que sólo admite al COCINERO.
   const appRol = express();
-  appRol.get('/solo-cocinero', autenticar, permitir('COCINERO'), (_req, res) => {
+  appRol.get('/solo-cocinero', autenticar, exigirRol('COCINERO'), (_req, res) => {
     res.sendStatus(200);
   });
   appRol.use(manejadorErrores);

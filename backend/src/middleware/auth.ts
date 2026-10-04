@@ -42,7 +42,7 @@ export const autenticar: RequestHandler = async (req, _res, next) => {
 };
 
 // Se usa después de autenticar: deja pasar sólo a los roles indicados.
-export function permitir(...roles: string[]): RequestHandler {
+export function exigirRol(...roles: string[]): RequestHandler {
   return (req, _res, next) => {
     if (!req.usuario || !roles.includes(req.usuario.rol)) {
       next(new HttpError(403, 'No tenés permiso para esta acción'));
