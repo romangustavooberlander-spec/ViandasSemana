@@ -1,6 +1,6 @@
 // Reglas de negocio de los pedidos. Son funciones puras (no tocan la base de datos),
 // por eso se prueban con tests unitarios en milisegundos.
-import { ReglaNegocioError } from '../lib/errors';
+import { HttpError } from '../lib/errors';
 
 // Argentina no usa horario de verano: UTC-3 todo el año.
 const OFFSET_ARGENTINA_HORAS = 3;
@@ -45,24 +45,26 @@ export interface DatosNuevoPedido {
   ahora: Date;
 }
 
-/** Lanza ReglaNegocioError si el pedido no se puede aceptar. */
+/** Lanza HttpError 409 si el pedido no se puede aceptar. */
 export function validarNuevoPedido(d: DatosNuevoPedido): void {
   if (!Number.isInteger(d.cantidad) || d.cantidad < 1) {
-    throw new ReglaNegocioError('CANTIDAD_INVALIDA', 'La cantidad debe ser un entero mayor a cero');
+    throw new HttpError(409, 'La cantidad debe ser un entero mayor a cero', 'CANTIDAD_INVALIDA');
   }
   if (yaPasoElCorte(d.fechaMenu, d.horaCorte, d.ahora)) {
-    throw new ReglaNegocioError(
-      'FUERA_DE_HORARIO',
+    throw new HttpError(
+      409,
       `Ya pasó el horario de corte (${d.horaCorte}) para este menú`,
+      'FUERA_DE_HORARIO',
     );
   }
   const disponibles = cuposDisponibles(d.cupoMaximo, d.viandasReservadas);
   if (d.cantidad > disponibles) {
-    throw new ReglaNegocioError(
-      'CUPO_COMPLETO',
+    throw new HttpError(
+      409,
       disponibles === 0
         ? 'No quedan viandas disponibles para este día'
         : `Sólo quedan ${disponibles} viandas disponibles para este día`,
+      'CUPO_COMPLETO',
     );
   }
 }
@@ -74,15 +76,16 @@ export interface DatosCancelacion {
   ahora: Date;
 }
 
-/** Lanza ReglaNegocioError si el pedido no se puede cancelar. */
+/** Lanza HttpError 409 si el pedido no se puede cancelar. */
 export function validarCancelacion(d: DatosCancelacion): void {
   if (d.estado === 'CANCELADO') {
-    throw new ReglaNegocioError('YA_CANCELADO', 'El pedido ya estaba cancelado');
+    throw new HttpError(409, 'El pedido ya estaba cancelado', 'YA_CANCELADO');
   }
   if (yaPasoElCorte(d.fechaMenu, d.horaCorte, d.ahora)) {
-    throw new ReglaNegocioError(
-      'FUERA_DE_HORARIO',
+    throw new HttpError(
+      409,
       'No se puede cancelar un pedido después del horario de corte',
+      'FUERA_DE_HORARIO',
     );
   }
 }

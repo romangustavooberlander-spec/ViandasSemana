@@ -7,11 +7,7 @@
     "dev": "tsx watch src/server.ts",
     "build": "prisma generate && tsc -p tsconfig.build.json",
     "start": "node dist/server.js",
-    "test": "vitest run --coverage",
-    "test:unit": "vitest run tests/unit",
-    "test:watch": "vitest",
-    "db:migrate": "prisma migrate dev",
-    "db:deploy": "prisma migrate deploy"
+    "test": "vitest run --coverage"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
@@ -33,7 +29,6 @@
     "@types/node": "^22.10.0",
     "@types/supertest": "^6.0.2",
     "@vitest/coverage-v8": "^2.1.8",
-    "pino-pretty": "^13.0.0",
     "prisma": "^5.22.0",
     "supertest": "^7.0.0",
     "tsx": "^4.19.2",

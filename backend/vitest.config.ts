@@ -2,7 +2,6 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    globals: true,
     environment: 'node',
     // Los tests usan SIEMPRE la base de pruebas (docker compose: db_test en :5433), nunca la de desarrollo.
     env: {
@@ -15,7 +14,7 @@ export default defineConfig({
     fileParallelism: false,
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'html', 'json-summary'],
+      reporter: ['text', 'html'],
       include: ['src/**/*.ts'],
       // Exclusiones justificadas (consigna 3.7.3): punto de entrada y configuración.
       exclude: [

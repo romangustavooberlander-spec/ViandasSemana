@@ -9,11 +9,3 @@ export class HttpError extends Error {
     this.name = 'HttpError';
   }
 }
-
-// Violación de una regla de negocio (cupo completo, horario de corte, etc.) → 409 Conflict.
-export class ReglaNegocioError extends HttpError {
-  constructor(codigo: string, message: string) {
-    super(409, message, codigo);
-    this.name = 'ReglaNegocioError';
-  }
-}
