@@ -28,7 +28,35 @@ export default function App() {
     });
     // Si había una sesión guardada, se confirma que el token siga valiendo.
     if (sesion) pedirApi('/api/auth/yo').catch(() => {});
+    volverDeMercadoPago();
   }, []);
+
+  // Mercado Pago devuelve al cliente a /?pedido=ID&payment_id=...&status=...
+  // El estado no se toma de la URL: se le pide a la API que lo consulte a Mercado Pago.
+  async function volverDeMercadoPago() {
+    const parametros = new URLSearchParams(window.location.search);
+    if (!parametros.has('pedido')) return;
+    window.history.replaceState(null, '', window.location.pathname);
+    const pagoId = parametros.get('payment_id');
+    try {
+      if (!pagoId || pagoId === 'null') {
+        avisar('No se completó el pago. Podés pagar la reserva desde "Mis pedidos" antes de que venza.', 'error');
+        return;
+      }
+      const r = await pedirApi<{ estadoPedido: string; estadoPago: string }>('/api/pagos/notificacion', {
+        method: 'POST',
+        body: JSON.stringify({ type: 'payment', data: { id: pagoId } }),
+      });
+      if (r.estadoPedido === 'CONFIRMADO') avisar('¡Pago aprobado! Tu reserva está confirmada.');
+      else if (r.estadoPedido === 'CANCELADO') avisar('La reserva ya estaba cancelada o vencida: te devolvimos el pago.', 'error');
+      else if (r.estadoPago === 'PENDIENTE') avisar('Mercado Pago está procesando el pago. Te confirmamos la reserva cuando se apruebe.');
+      else avisar('El pago no se aprobó. Podés intentar de nuevo desde "Mis pedidos".', 'error');
+    } catch (e) {
+      avisar((e as ErrorApi).message, 'error');
+    } finally {
+      setPestana('pedidos');
+    }
+  }
 
   function ingresar(nueva: Sesion) {
     guardarSesion(nueva);

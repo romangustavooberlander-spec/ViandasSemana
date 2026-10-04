@@ -8,6 +8,9 @@ export default defineConfig({
       DATABASE_URL: 'postgresql://viandas:viandas@localhost:5433/viandas_test',
       JWT_SECRET: 'secreto-solo-para-tests',
       NODE_ENV: 'test',
+      // Mercado Pago no se llama de verdad: los tests reemplazan fetch (ver tests/integration/ayudantes.ts).
+      MP_ACCESS_TOKEN: 'TEST-solo-para-tests',
+      FRONTEND_URL: 'http://localhost:5173',
     },
     include: ['tests/**/*.test.ts'],
     // Los tests de integración comparten la base de pruebas: se ejecutan de a uno.

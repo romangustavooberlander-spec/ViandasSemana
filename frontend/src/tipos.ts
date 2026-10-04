@@ -5,7 +5,8 @@ export interface Menu {
   descripcion: string;
   cupoMaximo: number;
   horaCorte: string;
-  reservadas: number;
+  precio: number; // por vianda, en pesos
+  reservadas: number; // pagadas o esperando el pago
   disponibles: number;
   abierto: boolean;
 }
@@ -13,8 +14,11 @@ export interface Menu {
 export interface Pedido {
   id: number;
   cantidad: number;
-  estado: 'ACTIVO' | 'CANCELADO';
+  estado: 'PENDIENTE_PAGO' | 'CONFIRMADO' | 'CANCELADO';
   cancelable: boolean;
+  pagable: boolean;
+  // null en los pedidos hechos antes de que existieran los pagos.
+  pago: { estado: 'PENDIENTE' | 'APROBADO' | 'RECHAZADO' | 'CANCELADO' | 'DEVUELTO'; monto: number } | null;
   creadoEn: string;
   menu: Menu;
   usuario: { id: number; nombre: string };
@@ -26,3 +30,7 @@ export const formatearFecha = (iso: string) =>
 
 // Fecha de hoy en Argentina, en formato AAAA-MM-DD (sólo para filtrar qué se muestra).
 export const hoy = () => new Date().toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' });
+
+// 3500 → "$ 3.500"
+export const formatearPrecio = (pesos: number) =>
+  pesos.toLocaleString('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 });

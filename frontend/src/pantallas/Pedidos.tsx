@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { enviar, ErrorApi, pedirApi } from '../api/cliente';
 import type { Avisar } from '../App';
-import { formatearFecha, hoy, type Pedido } from '../tipos';
+import { formatearFecha, formatearPrecio, hoy, type Pedido } from '../tipos';
 
 interface Props {
   esCocinero: boolean;
@@ -22,13 +22,24 @@ export default function Pedidos({ esCocinero, avisar }: Props) {
   }, []);
 
   async function cancelar(pedido: Pedido) {
-    if (!confirm(`¿Cancelar tu pedido del ${formatearFecha(pedido.menu.fecha)}?`)) return;
+    const devolucion = pedido.pago?.estado === 'APROBADO' ? ' Te devolvemos el pago por Mercado Pago.' : '';
+    if (!confirm(`¿Cancelar tu pedido del ${formatearFecha(pedido.menu.fecha)}?${devolucion}`)) return;
     try {
       await enviar(`/api/pedidos/${pedido.id}/cancelar`, 'PATCH');
       avisar('Pedido cancelado');
       await cargar();
     } catch (e) {
       avisar((e as ErrorApi).message, 'error');
+    }
+  }
+
+  async function pagar(pedido: Pedido) {
+    try {
+      const { urlPago } = await pedirApi<{ urlPago: string }>(`/api/pedidos/${pedido.id}/pagar`, { method: 'POST' });
+      window.location.href = urlPago;
+    } catch (e) {
+      avisar((e as ErrorApi).message, 'error');
+      await cargar();
     }
   }
 
@@ -58,7 +69,8 @@ export default function Pedidos({ esCocinero, avisar }: Props) {
 
       {[...porDia].map(([fecha, delDia]) => {
         const menu = delDia[0].menu;
-        const activos = delDia.filter((p) => p.estado === 'ACTIVO');
+        // Se cocinan sólo los pedidos pagados.
+        const activos = delDia.filter((p) => p.estado === 'CONFIRMADO');
         const total = activos.reduce((suma, p) => suma + p.cantidad, 0);
         return (
           <article key={fecha} className="tarjeta dia">
@@ -81,23 +93,38 @@ export default function Pedidos({ esCocinero, avisar }: Props) {
                     <b>{p.cantidad}</b> {p.cantidad === 1 ? 'vianda' : 'viandas'}
                     {esCocinero && <> · {p.usuario.nombre}</>}
                   </span>
-                  {!esCocinero &&
-                    (p.cancelable ? (
-                      <button className="boton secundario chico" onClick={() => cancelar(p)}>
-                        Cancelar
-                      </button>
-                    ) : (
-                      <span className={`etiqueta ${p.estado === 'ACTIVO' ? 'verde' : 'gris'}`}>
-                        {p.estado === 'ACTIVO' ? 'Confirmado' : 'Cancelado'}
-                      </span>
-                    ))}
+                  {!esCocinero && (
+                    <span className="estado-pedido">
+                      <Estado pedido={p} />
+                      {p.pagable && (
+                        <button className="boton chico" onClick={() => pagar(p)}>
+                          Pagar {p.pago && formatearPrecio(p.pago.monto)}
+                        </button>
+                      )}
+                      {p.cancelable && (
+                        <button className="boton secundario chico" onClick={() => cancelar(p)}>
+                          Cancelar
+                        </button>
+                      )}
+                    </span>
+                  )}
                 </li>
               ))}
-              {esCocinero && activos.length === 0 && <li className="cancelado">Todos los pedidos de este día se cancelaron.</li>}
+              {esCocinero && activos.length === 0 && <li className="cancelado">No hay pedidos pagados para este día.</li>}
             </ul>
           </article>
         );
       })}
     </section>
   );
+}
+
+// Etiqueta con el estado de la reserva y de su pago, tal como lo informa la API.
+function Estado({ pedido: { estado, pago } }: { pedido: Pedido }) {
+  if (estado === 'CONFIRMADO') return <span className="etiqueta verde">{pago ? 'Pagado' : 'Confirmado'}</span>;
+  if (estado === 'CANCELADO') {
+    return <span className="etiqueta gris">{pago?.estado === 'DEVUELTO' ? 'Cancelado · pago devuelto' : 'Cancelado'}</span>;
+  }
+  const texto = pago?.estado === 'RECHAZADO' ? 'Pago rechazado' : pago?.estado === 'CANCELADO' ? 'Pago no completado' : 'Falta pagar';
+  return <span className="etiqueta naranja">{texto}</span>;
 }

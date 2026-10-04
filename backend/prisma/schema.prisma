@@ -26,7 +26,22 @@ model Usuario {
   // Se incrementa en cada logout: los tokens emitidos con una versión anterior dejan de valer.
   versionToken Int      @default(0)
   pedidos      Pedido[]
+  codigos      CodigoRecuperacion[]
   creadoEn     DateTime @default(now())
+}
+
+// Código de un solo uso para recuperar la contraseña. Se guarda sólo su hash (nunca el código).
+model CodigoRecuperacion {
+  id         Int       @id @default(autoincrement())
+  usuarioId  Int
+  usuario    Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  codigoHash String
+  venceEn    DateTime
+  usadoEn    DateTime? // se completa al usarlo o al invalidarlo; después ya no sirve
+  intentos   Int       @default(0) // intentos fallidos: al llegar al máximo se invalida
+  creadoEn   DateTime  @default(now())
+
+  @@index([usuarioId])
 }
 
 model MenuDia {
@@ -35,22 +50,50 @@ model MenuDia {
   descripcion String
   cupoMaximo  Int
   horaCorte   String // formato "HH:mm", hora de Argentina
+  precio      Int // precio de una vianda, en pesos
   pedidos     Pedido[]
   creadoEn    DateTime @default(now())
 }
 
+// Un pedido nace PENDIENTE_PAGO y guarda su lugar en el cupo hasta que se paga (CONFIRMADO),
+// se cancela o vence el plazo para pagar (CANCELADO).
 enum EstadoPedido {
-  ACTIVO
+  PENDIENTE_PAGO
+  CONFIRMADO
   CANCELADO
 }
 
 model Pedido {
   id        Int          @id @default(autoincrement())
   cantidad  Int
-  estado    EstadoPedido @default(ACTIVO)
+  estado    EstadoPedido @default(PENDIENTE_PAGO)
   usuarioId Int
   usuario   Usuario      @relation(fields: [usuarioId], references: [id])
   menuId    Int
   menu      MenuDia      @relation(fields: [menuId], references: [id], onDelete: Restrict)
+  pago      Pago?
   creadoEn  DateTime     @default(now())
+}
+
+enum EstadoPago {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+  CANCELADO
+  DEVUELTO // se aprobó pero el pedido ya estaba cancelado, o se canceló después de pagar
+}
+
+// Pago del 100 % de un pedido con Mercado Pago (Checkout Pro).
+model Pago {
+  id            Int        @id @default(autoincrement())
+  pedidoId      Int        @unique
+  pedido        Pedido     @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+  monto         Int // en pesos: cantidad x precio del menú
+  estado        EstadoPago @default(PENDIENTE)
+  preferenciaId String?    @unique // preferencia de Checkout Pro
+  urlPago       String? // init_point de la preferencia
+  mpPagoId      String? // id del pago en Mercado Pago, cuando el cliente pagó
+  venceEn       DateTime // hasta cuándo se puede pagar; después el pedido se cancela
+  creadoEn      DateTime   @default(now())
+  actualizadoEn DateTime   @updatedAt
 }

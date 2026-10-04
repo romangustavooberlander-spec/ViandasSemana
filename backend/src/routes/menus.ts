@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { prisma } from '../lib/prisma';
 import { HttpError } from '../lib/errors';
 import { autenticar, exigirRol } from '../middleware/auth';
+import { OCUPAN_CUPO, vencerReservasImpagas } from '../lib/pagos';
 import { yaPasoElCorte } from '../domain/reglasPedido';
 
 export const menusRouter = Router();
@@ -11,12 +12,13 @@ const esquemaMenu = z.object({
   fecha: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato AAAA-MM-DD'),
   descripcion: z.string().trim().min(1),
   cupoMaximo: z.number().int().min(1),
+  precio: z.number().int('El precio va en pesos, sin centavos').min(1, 'El precio tiene que ser mayor a cero'),
   horaCorte: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Formato HH:mm'),
 });
 
 const esquemaId = z.coerce.number().int().positive();
 
-// Devuelve el menú con cuántas viandas hay reservadas (el total a cocinar), cuántas quedan
+// Devuelve el menú con cuántas viandas hay reservadas (pagadas o esperando el pago), cuántas quedan
 // y si todavía se aceptan pedidos. Así el frontend no tiene que calcular ninguna regla.
 async function buscarMenu(id: number) {
   const menu = await prisma.menuDia.findUnique({ where: { id } });
@@ -24,9 +26,9 @@ async function buscarMenu(id: number) {
   return conTotales(menu);
 }
 
-async function conTotales<T extends { id: number; cupoMaximo: number; fecha: Date; horaCorte: string }>(menu: T) {
+async function conTotales<T extends { id: number; cupoMaximo: number; precio: number; fecha: Date; horaCorte: string }>(menu: T) {
   const { _sum } = await prisma.pedido.aggregate({
-    where: { menuId: menu.id, estado: 'ACTIVO' },
+    where: { menuId: menu.id, estado: OCUPAN_CUPO },
     _sum: { cantidad: true },
   });
   const reservadas = _sum.cantidad ?? 0;
@@ -34,7 +36,8 @@ async function conTotales<T extends { id: number; cupoMaximo: number; fecha: Dat
     ...menu,
     reservadas,
     disponibles: Math.max(0, menu.cupoMaximo - reservadas),
-    abierto: !yaPasoElCorte(menu.fecha, menu.horaCorte, new Date()),
+    // Se puede reservar si tiene precio (los menús anteriores a los pagos quedaron en 0) y no pasó el corte.
+    abierto: menu.precio > 0 && !yaPasoElCorte(menu.fecha, menu.horaCorte, new Date()),
   };
 }
 
@@ -44,6 +47,11 @@ function aDatos(body: unknown) {
 }
 
 menusRouter.use(autenticar);
+// Antes de contar el cupo se liberan las reservas que no se pagaron a tiempo.
+menusRouter.use(async (_req, _res, next) => {
+  await vencerReservasImpagas();
+  next();
+});
 
 menusRouter.get('/', async (_req, res) => {
   const menus = await prisma.menuDia.findMany({ orderBy: { fecha: 'asc' } });
