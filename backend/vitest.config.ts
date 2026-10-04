@@ -2,14 +2,13 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    globals: true,
     environment: 'node',
     include: ['tests/**/*.test.ts'],
     // Los tests de integración comparten la base de pruebas: se ejecutan de a uno.
     fileParallelism: false,
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'html', 'json-summary'],
+      reporter: ['text', 'html'],
       include: ['src/**/*.ts'],
       // Exclusiones justificadas (consigna 3.7.3): punto de entrada y configuración.
       exclude: [

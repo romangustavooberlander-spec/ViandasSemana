@@ -7,7 +7,7 @@ import {
   validarNuevoPedido,
   validarCancelacion,
 } from '../../src/domain/reglasPedido';
-import { ReglaNegocioError } from '../../src/lib/errors';
+import { HttpError } from '../../src/lib/errors';
 
 // Menú del lunes 12/10/2026 con corte a las 10:00 (hora Argentina) = 13:00 UTC.
 const fechaMenu = new Date('2026-10-12T00:00:00.000Z');
@@ -20,7 +20,7 @@ function capturarCodigo(fn: () => void): string | undefined {
   try {
     fn();
   } catch (e) {
-    if (e instanceof ReglaNegocioError) return e.codigo;
+    if (e instanceof HttpError) return e.codigo;
     throw e;
   }
   return undefined;
@@ -92,7 +92,7 @@ describe('validarNuevoPedido', () => {
     try {
       validarNuevoPedido({ ...base, cantidad: 99 });
     } catch (e) {
-      expect((e as ReglaNegocioError).status).toBe(409);
+      expect((e as HttpError).status).toBe(409);
       return;
     }
     throw new Error('Debió lanzar error');
