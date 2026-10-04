@@ -5,6 +5,8 @@ import { pinoHttp } from 'pino-http';
 import { logger } from './lib/logger';
 import { healthRouter } from './routes/health';
 import { authRouter } from './routes/auth';
+import { menusRouter } from './routes/menus';
+import { pedidosRouter } from './routes/pedidos';
 import { manejadorErrores, noEncontrado } from './middleware/errorHandler';
 
 export interface OpcionesApp {
@@ -28,6 +30,8 @@ export function crearApp({ corsOrigins }: OpcionesApp) {
 
   app.use('/api/health', healthRouter);
   app.use('/api/auth', authRouter);
+  app.use('/api/menus', menusRouter);
+  app.use('/api/pedidos', pedidosRouter);
 
   app.use(noEncontrado);
   app.use(manejadorErrores);
