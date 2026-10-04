@@ -10,10 +10,18 @@ los menús y hacen o cancelan sus pedidos respetando esas reglas.
 
 | Componente | URL |
 |---|---|
-| Frontend | _pendiente_ |
-| Backend (API) | _pendiente_ |
+| Frontend | https://viandassemana-web.onrender.com |
+| Backend (API) | https://viandassemana.onrender.com/api/health |
 
 ## Arquitectura
+
+| Componente | Plataforma | Región |
+|---|---|---|
+| Frontend (sitio estático) | Render Static Site | CDN global |
+| Backend (API) | Render Web Service (Free) | Virginia (US East) |
+| Base de datos | Neon PostgreSQL (Free) | AWS US East 1 |
+
+> El backend del plan gratuito se suspende tras 15 min sin tráfico; la primera petición tarda ~1 min en despertarlo.
 
 ```
 frontend/   React + Vite (TypeScript)        → se despliega como sitio estático
