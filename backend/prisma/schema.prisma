@@ -23,6 +23,8 @@ model Usuario {
   passwordHash String
   rolId        Int
   rol          Rol      @relation(fields: [rolId], references: [id])
+  // Se incrementa en cada logout: los tokens emitidos con una versión anterior dejan de valer.
+  versionToken Int      @default(0)
   pedidos      Pedido[]
   creadoEn     DateTime @default(now())
 }
