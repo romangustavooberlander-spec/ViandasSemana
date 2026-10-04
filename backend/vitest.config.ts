@@ -4,6 +4,12 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    // Los tests usan SIEMPRE la base de pruebas (docker compose: db_test en :5433), nunca la de desarrollo.
+    env: {
+      DATABASE_URL: 'postgresql://viandas:viandas@localhost:5433/viandas_test',
+      JWT_SECRET: 'secreto-solo-para-tests',
+      NODE_ENV: 'test',
+    },
     include: ['tests/**/*.test.ts'],
     // Los tests de integración comparten la base de pruebas: se ejecutan de a uno.
     fileParallelism: false,
