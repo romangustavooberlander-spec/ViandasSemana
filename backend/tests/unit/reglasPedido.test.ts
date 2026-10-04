@@ -6,6 +6,8 @@ import {
   cuposDisponibles,
   validarNuevoPedido,
   validarCancelacion,
+  vencimientoDelPago,
+  estadoDelPago,
 } from '../../src/domain/reglasPedido';
 import { HttpError } from '../../src/lib/errors';
 
@@ -102,13 +104,13 @@ describe('validarNuevoPedido', () => {
 describe('validarCancelacion', () => {
   it('permite cancelar un pedido activo antes del corte', () => {
     expect(() =>
-      validarCancelacion({ estado: 'ACTIVO', fechaMenu, horaCorte, ahora: antesDelCorte }),
+      validarCancelacion({ estado: 'CONFIRMADO', fechaMenu, horaCorte, ahora: antesDelCorte }),
     ).not.toThrow();
   });
 
   it('no permite cancelar después del corte', () => {
     expect(
-      capturarCodigo(() => validarCancelacion({ estado: 'ACTIVO', fechaMenu, horaCorte, ahora: despuesDelCorte })),
+      capturarCodigo(() => validarCancelacion({ estado: 'CONFIRMADO', fechaMenu, horaCorte, ahora: despuesDelCorte })),
     ).toBe('FUERA_DE_HORARIO');
   });
 
@@ -116,5 +118,28 @@ describe('validarCancelacion', () => {
     expect(
       capturarCodigo(() => validarCancelacion({ estado: 'CANCELADO', fechaMenu, horaCorte, ahora: antesDelCorte })),
     ).toBe('YA_CANCELADO');
+  });
+});
+
+describe('vencimientoDelPago', () => {
+  it('da 30 minutos para pagar', () => {
+    const ahora = new Date('2026-10-12T10:00:00.000Z');
+    expect(vencimientoDelPago(fechaMenu, horaCorte, ahora).toISOString()).toBe('2026-10-12T10:30:00.000Z');
+  });
+
+  it('nunca vence después del horario de corte', () => {
+    expect(vencimientoDelPago(fechaMenu, horaCorte, antesDelCorte).toISOString()).toBe('2026-10-12T13:00:00.000Z');
+  });
+});
+
+describe('estadoDelPago', () => {
+  it('traduce los estados de Mercado Pago', () => {
+    expect(estadoDelPago('approved')).toBe('APROBADO');
+    expect(estadoDelPago('rejected')).toBe('RECHAZADO');
+    expect(estadoDelPago('cancelled')).toBe('CANCELADO');
+    expect(estadoDelPago('refunded')).toBe('DEVUELTO');
+    expect(estadoDelPago('charged_back')).toBe('DEVUELTO');
+    expect(estadoDelPago('in_process')).toBe('PENDIENTE');
+    expect(estadoDelPago('pending')).toBe('PENDIENTE');
   });
 });

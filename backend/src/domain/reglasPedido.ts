@@ -70,7 +70,7 @@ export function validarNuevoPedido(d: DatosNuevoPedido): void {
 }
 
 export interface DatosCancelacion {
-  estado: 'ACTIVO' | 'CANCELADO';
+  estado: 'PENDIENTE_PAGO' | 'CONFIRMADO' | 'CANCELADO';
   fechaMenu: Date;
   horaCorte: string;
   ahora: Date;
@@ -87,5 +87,35 @@ export function validarCancelacion(d: DatosCancelacion): void {
       'No se puede cancelar un pedido después del horario de corte',
       'FUERA_DE_HORARIO',
     );
+  }
+}
+
+// ---------- Pagos ----------
+
+// Tiempo que tiene el cliente para pagar una reserva. Mientras tanto la reserva ocupa su lugar en el cupo.
+export const MINUTOS_PARA_PAGAR = 30;
+
+/** Hasta cuándo se puede pagar un pedido: MINUTOS_PARA_PAGAR, pero nunca después del horario de corte. */
+export function vencimientoDelPago(fechaMenu: Date, horaCorte: string, ahora: Date): Date {
+  const limite = ahora.getTime() + MINUTOS_PARA_PAGAR * 60_000;
+  return new Date(Math.min(limite, instanteDeCorte(fechaMenu, horaCorte).getTime()));
+}
+
+export type EstadoPago = 'PENDIENTE' | 'APROBADO' | 'RECHAZADO' | 'CANCELADO' | 'DEVUELTO';
+
+/** Traduce el "status" de un pago de Mercado Pago al estado del pago en el sistema. */
+export function estadoDelPago(statusMercadoPago: string): EstadoPago {
+  switch (statusMercadoPago) {
+    case 'approved':
+      return 'APROBADO';
+    case 'rejected':
+      return 'RECHAZADO';
+    case 'cancelled':
+      return 'CANCELADO';
+    case 'refunded':
+    case 'charged_back':
+      return 'DEVUELTO';
+    default: // pending, in_process, in_mediation, authorized
+      return 'PENDIENTE';
   }
 }

@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterAll } from 'vitest';
 import request from 'supertest';
 import { crearApp } from '../../src/app';
 import { prisma } from '../../src/lib/prisma';
-import { crearUsuario, limpiarBase } from './ayudantes';
+import { crearUsuario, limpiarBase, simularMercadoPago } from './ayudantes';
 
 const app = crearApp({ corsOrigins: [] });
 
@@ -15,7 +15,8 @@ beforeEach(async () => {
   await limpiarBase();
   cocinero = (await crearUsuario('COCINERO')).auth;
   cliente = (await crearUsuario('CLIENTE')).auth;
-  const datos = { descripcion: 'Tarta', cupoMaximo: 3, horaCorte: '10:00' };
+  simularMercadoPago();
+  const datos = { descripcion: 'Tarta', cupoMaximo: 3, horaCorte: '10:00', precio: 3000 };
   menuAbierto = (await prisma.menuDia.create({ data: { ...datos, fecha: new Date('2099-01-10') } })).id;
   menuCerrado = (await prisma.menuDia.create({ data: { ...datos, fecha: new Date('2000-01-10') } })).id;
 });
@@ -26,10 +27,10 @@ const pedir = (auth: string, menuId: number, cantidad: number) =>
   request(app).post('/api/pedidos').set('Authorization', auth).send({ menuId, cantidad });
 
 describe('API de pedidos', () => {
-  it('POST crea un pedido y responde 201', async () => {
+  it('POST crea un pedido pendiente de pago y responde 201', async () => {
     const res = await pedir(cliente, menuAbierto, 2);
     expect(res.status).toBe(201);
-    expect(res.body).toMatchObject({ menuId: menuAbierto, cantidad: 2, estado: 'ACTIVO' });
+    expect(res.body).toMatchObject({ menuId: menuAbierto, cantidad: 2, estado: 'PENDIENTE_PAGO' });
   });
 
   it('rechaza un pedido que supera el cupo (409 CUPO_COMPLETO)', async () => {

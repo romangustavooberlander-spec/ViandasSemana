@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { enviar, ErrorApi, pedirApi, type Sesion } from '../api/cliente';
 import type { Avisar } from '../App';
+import Recuperar from './Recuperar';
 
 interface Props {
   alIngresar: (sesion: Sesion) => void;
@@ -8,7 +9,7 @@ interface Props {
 }
 
 export default function Acceso({ alIngresar, avisar }: Props) {
-  const [modo, setModo] = useState<'login' | 'registro'>('login');
+  const [modo, setModo] = useState<'login' | 'registro' | 'recuperar'>('login');
   const [cargando, setCargando] = useState(false);
 
   async function enviarFormulario(e: FormEvent<HTMLFormElement>) {
@@ -34,40 +35,49 @@ export default function Acceso({ alIngresar, avisar }: Props) {
         <p>Mirá el menú de cada día, reservá tus viandas antes del horario de corte y cancelá si cambian tus planes.</p>
       </section>
 
-      <form className="tarjeta formulario" onSubmit={enviarFormulario}>
-        <div className="pestanas">
-          <button type="button" className={modo === 'login' ? 'activa' : ''} onClick={() => setModo('login')}>
-            Ingresar
-          </button>
-          <button type="button" className={modo === 'registro' ? 'activa' : ''} onClick={() => setModo('registro')}>
-            Crear cuenta
-          </button>
-        </div>
-        {modo === 'registro' && (
+      {modo === 'recuperar' ? (
+        <Recuperar alVolver={() => setModo('login')} avisar={avisar} />
+      ) : (
+        <form className="tarjeta formulario" onSubmit={enviarFormulario}>
+          <div className="pestanas">
+            <button type="button" className={modo === 'login' ? 'activa' : ''} onClick={() => setModo('login')}>
+              Ingresar
+            </button>
+            <button type="button" className={modo === 'registro' ? 'activa' : ''} onClick={() => setModo('registro')}>
+              Crear cuenta
+            </button>
+          </div>
+          {modo === 'registro' && (
+            <label>
+              Nombre
+              <input name="nombre" required autoComplete="name" />
+            </label>
+          )}
           <label>
-            Nombre
-            <input name="nombre" required autoComplete="name" />
+            Email
+            <input name="email" type="email" required autoComplete="email" />
           </label>
-        )}
-        <label>
-          Email
-          <input name="email" type="email" required autoComplete="email" />
-        </label>
-        <label>
-          Contraseña
-          <input
-            name="password"
-            type="password"
-            required
-            minLength={modo === 'registro' ? 8 : 1}
-            autoComplete={modo === 'registro' ? 'new-password' : 'current-password'}
-          />
-          {modo === 'registro' && <small>Al menos 8 caracteres.</small>}
-        </label>
-        <button className="boton" disabled={cargando}>
-          {cargando ? 'Un momento…' : modo === 'login' ? 'Ingresar' : 'Crear cuenta'}
-        </button>
-      </form>
+          <label>
+            Contraseña
+            <input
+              name="password"
+              type="password"
+              required
+              minLength={modo === 'registro' ? 8 : 1}
+              autoComplete={modo === 'registro' ? 'new-password' : 'current-password'}
+            />
+            {modo === 'registro' && <small>Al menos 8 caracteres.</small>}
+          </label>
+          <button className="boton" disabled={cargando}>
+            {cargando ? 'Un momento…' : modo === 'login' ? 'Ingresar' : 'Crear cuenta'}
+          </button>
+          {modo === 'login' && (
+            <button type="button" className="enlace" onClick={() => setModo('recuperar')}>
+              ¿Olvidaste tu contraseña?
+            </button>
+          )}
+        </form>
+      )}
     </main>
   );
 }

@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { enviar, ErrorApi, pedirApi } from '../api/cliente';
 import type { Avisar } from '../App';
-import { formatearFecha, hoy, type Menu } from '../tipos';
+import { formatearFecha, formatearPrecio, hoy, type Menu } from '../tipos';
 
 interface Props {
   esCocinero: boolean;
@@ -34,10 +34,18 @@ export default function Menus({ esCocinero, avisar }: Props) {
     }
   }
 
-  function reservar(e: FormEvent<HTMLFormElement>, menu: Menu) {
+  // La reserva queda pendiente hasta pagarla: se crea y se pasa a Mercado Pago a pagar el total.
+  async function reservar(e: FormEvent<HTMLFormElement>, menu: Menu) {
     e.preventDefault();
     const cantidad = Number(new FormData(e.currentTarget).get('cantidad'));
-    hacer(() => enviar('/api/pedidos', 'POST', { menuId: menu.id, cantidad }), `Reservaste ${cantidad} para el ${formatearFecha(menu.fecha)}`);
+    try {
+      const { urlPago } = (await enviar('/api/pedidos', 'POST', { menuId: menu.id, cantidad })) as { urlPago: string };
+      avisar('Te llevamos a Mercado Pago para pagar tu reserva…');
+      window.location.href = urlPago;
+    } catch (err) {
+      avisar((err as ErrorApi).message, 'error');
+      await cargar();
+    }
   }
 
   function guardar(datos: Record<string, unknown>) {
@@ -89,6 +97,7 @@ export default function Menus({ esCocinero, avisar }: Props) {
               </span>
             </header>
             <p className="descripcion">{menu.descripcion}</p>
+            <p className="precio">{menu.precio ? `${formatearPrecio(menu.precio)} por vianda` : 'Sin precio: todavía no se puede reservar'}</p>
             <div className="cupo" title={`${menu.reservadas} de ${menu.cupoMaximo} reservadas`}>
               <div style={{ width: `${Math.min(100, (menu.reservadas / menu.cupoMaximo) * 100)}%` }} />
             </div>
@@ -110,7 +119,7 @@ export default function Menus({ esCocinero, avisar }: Props) {
               menu.disponibles > 0 && (
                 <form className="acciones" onSubmit={(e) => reservar(e, menu)}>
                   <input name="cantidad" type="number" min={1} defaultValue={1} aria-label="Cantidad" />
-                  <button className="boton">Reservar</button>
+                  <button className="boton">Reservar y pagar</button>
                 </form>
               )
             )}
@@ -131,7 +140,7 @@ function FormularioMenu({ menu, alGuardar, alCancelar }: PropsFormulario) {
   function enviarFormulario(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const datos = Object.fromEntries(new FormData(e.currentTarget));
-    alGuardar({ ...datos, cupoMaximo: Number(datos.cupoMaximo) });
+    alGuardar({ ...datos, cupoMaximo: Number(datos.cupoMaximo), precio: Number(datos.precio) });
   }
 
   return (
@@ -145,6 +154,10 @@ function FormularioMenu({ menu, alGuardar, alCancelar }: PropsFormulario) {
         <label>
           Viandas disponibles
           <input name="cupoMaximo" type="number" min={1} required defaultValue={menu?.cupoMaximo ?? 20} />
+        </label>
+        <label>
+          Precio por vianda ($)
+          <input name="precio" type="number" min={1} step={1} required defaultValue={menu?.precio || ''} />
         </label>
         <label>
           Pedidos hasta las

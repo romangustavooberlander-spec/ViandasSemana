@@ -5,7 +5,7 @@ import { prisma } from '../../src/lib/prisma';
 import { crearUsuario, limpiarBase } from './ayudantes';
 
 const app = crearApp({ corsOrigins: [] });
-const menuValido = { fecha: '2099-01-10', descripcion: 'Milanesa con puré', cupoMaximo: 20, horaCorte: '10:00' };
+const menuValido = { fecha: '2099-01-10', descripcion: 'Milanesa con puré', cupoMaximo: 20, horaCorte: '10:00', precio: 3500 };
 
 let cocinero: string;
 let cliente: string;
