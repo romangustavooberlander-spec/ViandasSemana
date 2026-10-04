@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { prisma } from '../lib/prisma';
 import { HttpError } from '../lib/errors';
 import { autenticar, exigirRol } from '../middleware/auth';
-import { validarCancelacion, validarNuevoPedido } from '../domain/reglasPedido';
+import { validarCancelacion, validarNuevoPedido, yaPasoElCorte } from '../domain/reglasPedido';
 
 export const pedidosRouter = Router();
 
@@ -17,13 +17,20 @@ const esquemaId = z.coerce.number().int().positive();
 pedidosRouter.use(autenticar);
 
 // El cocinero ve todos los pedidos; el cliente, sólo los suyos.
+// "cancelable" le dice al frontend si mostrar el botón de cancelar.
 pedidosRouter.get('/', async (req, res) => {
   const pedidos = await prisma.pedido.findMany({
     where: req.usuario!.rol === 'COCINERO' ? {} : { usuarioId: req.usuario!.id },
     include: { menu: true, usuario: { select: { id: true, nombre: true } } },
     orderBy: { creadoEn: 'desc' },
   });
-  res.json(pedidos);
+  const ahora = new Date();
+  res.json(
+    pedidos.map((p) => ({
+      ...p,
+      cancelable: p.estado === 'ACTIVO' && !yaPasoElCorte(p.menu.fecha, p.menu.horaCorte, ahora),
+    })),
+  );
 });
 
 pedidosRouter.post('/', exigirRol('CLIENTE'), async (req, res) => {

@@ -90,6 +90,22 @@ Los roles (`COCINERO`, `CLIENTE`) están en la tabla `Rol` y los carga la migrac
 Todo registro crea un CLIENTE; para que un usuario sea cocinero se le cambia el rol en la base
 (por ejemplo con `npx prisma studio`).
 
+## Frontend
+
+| Pantalla | Cliente | Cocinero |
+|---|---|---|
+| Ingresar / crear cuenta | ✓ | ✓ |
+| Menú de la semana | ve cada día con las viandas que quedan y reserva | crea, edita y borra menús; ve cuántas hay reservadas |
+| Pedidos | ve sus pedidos y los cancela antes del horario de corte | ve los pedidos de cada día y el total a cocinar |
+
+El token se guarda en `localStorage` y viaja en el encabezado `Authorization`. Ante un **401** el
+frontend vuelve al inicio de sesión; ante un **403** avisa que falta permiso. Cada rol sólo ve los
+botones que puede usar. El frontend no calcula reglas de negocio: la API devuelve en cada menú si
+todavía acepta pedidos (`abierto`) y en cada pedido si se puede cancelar (`cancelable`).
+
+El logo (`frontend/public/logo.svg`) es una vianda con los aros de un calendario: las cinco porciones
+son los días de lunes a viernes y la verde con el tilde es la vianda reservada.
+
 ## Variables de entorno
 
 ### Backend (`backend/.env`)

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { prisma } from '../lib/prisma';
 import { HttpError } from '../lib/errors';
 import { autenticar, exigirRol } from '../middleware/auth';
+import { yaPasoElCorte } from '../domain/reglasPedido';
 
 export const menusRouter = Router();
 
@@ -15,20 +16,26 @@ const esquemaMenu = z.object({
 
 const esquemaId = z.coerce.number().int().positive();
 
-// Devuelve el menú con cuántas viandas hay reservadas (el total a cocinar) y cuántas quedan.
+// Devuelve el menú con cuántas viandas hay reservadas (el total a cocinar), cuántas quedan
+// y si todavía se aceptan pedidos. Así el frontend no tiene que calcular ninguna regla.
 async function buscarMenu(id: number) {
   const menu = await prisma.menuDia.findUnique({ where: { id } });
   if (!menu) throw new HttpError(404, 'Menú no encontrado');
   return conTotales(menu);
 }
 
-async function conTotales<T extends { id: number; cupoMaximo: number }>(menu: T) {
+async function conTotales<T extends { id: number; cupoMaximo: number; fecha: Date; horaCorte: string }>(menu: T) {
   const { _sum } = await prisma.pedido.aggregate({
     where: { menuId: menu.id, estado: 'ACTIVO' },
     _sum: { cantidad: true },
   });
   const reservadas = _sum.cantidad ?? 0;
-  return { ...menu, reservadas, disponibles: Math.max(0, menu.cupoMaximo - reservadas) };
+  return {
+    ...menu,
+    reservadas,
+    disponibles: Math.max(0, menu.cupoMaximo - reservadas),
+    abierto: !yaPasoElCorte(menu.fecha, menu.horaCorte, new Date()),
+  };
 }
 
 function aDatos(body: unknown) {

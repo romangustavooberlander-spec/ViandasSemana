@@ -69,6 +69,7 @@ describe('API de pedidos', () => {
     const propios = await request(app).get('/api/pedidos').set('Authorization', cliente);
     expect(propios.status).toBe(200);
     expect(propios.body).toHaveLength(1);
+    expect(propios.body[0].cancelable).toBe(true);
     const todos = await request(app).get('/api/pedidos').set('Authorization', cocinero);
     expect(todos.body).toHaveLength(2);
   });
@@ -76,7 +77,9 @@ describe('API de pedidos', () => {
   it('el cocinero ve el total de viandas a preparar en el menú', async () => {
     await pedir(cliente, menuAbierto, 2);
     const res = await request(app).get(`/api/menus/${menuAbierto}`).set('Authorization', cocinero);
-    expect(res.body).toMatchObject({ reservadas: 2, disponibles: 1 });
+    expect(res.body).toMatchObject({ reservadas: 2, disponibles: 1, abierto: true });
+    const cerrado = await request(app).get(`/api/menus/${menuCerrado}`).set('Authorization', cocinero);
+    expect(cerrado.body.abierto).toBe(false);
   });
 
   it('PATCH cancela un pedido propio y libera el cupo', async () => {
