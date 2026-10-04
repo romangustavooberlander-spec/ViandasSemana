@@ -1,0 +1,54 @@
+// Modelo de datos de ViandasSemana.
+// Este archivo es la fuente de verdad del DER (consigna 4.5).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Rol {
+  id       Int       @id @default(autoincrement())
+  nombre   String    @unique // "COCINERO" | "CLIENTE"
+  usuarios Usuario[]
+}
+
+model Usuario {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  nombre       String
+  passwordHash String
+  rolId        Int
+  rol          Rol      @relation(fields: [rolId], references: [id])
+  pedidos      Pedido[]
+  creadoEn     DateTime @default(now())
+}
+
+model MenuDia {
+  id          Int      @id @default(autoincrement())
+  fecha       DateTime @unique @db.Date
+  descripcion String
+  cupoMaximo  Int
+  horaCorte   String // formato "HH:mm", hora de Argentina
+  pedidos     Pedido[]
+  creadoEn    DateTime @default(now())
+}
+
+enum EstadoPedido {
+  ACTIVO
+  CANCELADO
+}
+
+model Pedido {
+  id        Int          @id @default(autoincrement())
+  cantidad  Int
+  estado    EstadoPedido @default(ACTIVO)
+  usuarioId Int
+  usuario   Usuario      @relation(fields: [usuarioId], references: [id])
+  menuId    Int
+  menu      MenuDia      @relation(fields: [menuId], references: [id], onDelete: Restrict)
+  creadoEn  DateTime     @default(now())
+}

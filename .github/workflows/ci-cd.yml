@@ -1,0 +1,93 @@
+# Pipeline de CI/CD de ViandasSemana (consigna 3.6.2)
+# Se dispara solo con cada push o PR a main. Si falla un test o la cobertura
+# baja del 65 %, el job "desplegar" no se ejecuta.
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend:
+    name: Backend - instalar, testear y construir
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      # Base de PRUEBAS efímera: se crea para esta ejecución y se descarta.
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: viandas
+          POSTGRES_PASSWORD: viandas
+          POSTGRES_DB: viandas_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://viandas:viandas@localhost:5432/viandas_test
+      JWT_SECRET: secreto-solo-para-tests
+      NODE_ENV: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npx prisma migrate deploy
+      - name: Tests unitarios + integración con umbral de cobertura 65 %
+        run: npm test
+      - name: Publicar resumen de cobertura
+        if: always()
+        run: |
+          if [ -f coverage/coverage-summary.json ]; then
+            node -e "const t=require('./coverage/coverage-summary.json').total; console.log('### Cobertura backend\n\n| Métrica | % |\n|---|---|\n| Líneas | '+t.lines.pct+' |\n| Funciones | '+t.functions.pct+' |\n| Ramas | '+t.branches.pct+' |')" >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cobertura-backend
+          path: backend/coverage
+      - run: npm run build
+
+  frontend:
+    name: Frontend - instalar y construir
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run build
+
+  desplegar:
+    name: Desplegar a producción
+    needs: [backend, frontend]
+    # Sólo en push a main (no en PRs) y sólo si backend y frontend pasaron.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Disparar despliegue del backend y del frontend
+        env:
+          # Se cargan en GitHub > Settings > Secrets and variables > Actions
+          DEPLOY_HOOK_BACKEND: ${{ secrets.DEPLOY_HOOK_BACKEND }}
+          DEPLOY_HOOK_FRONTEND: ${{ secrets.DEPLOY_HOOK_FRONTEND }}
+        run: |
+          if [ -z "$DEPLOY_HOOK_BACKEND" ] || [ -z "$DEPLOY_HOOK_FRONTEND" ]; then
+            echo "::error::Faltan los secretos DEPLOY_HOOK_BACKEND / DEPLOY_HOOK_FRONTEND"
+            exit 1
+          fi
+          curl -fsS -X POST "$DEPLOY_HOOK_BACKEND"
+          curl -fsS -X POST "$DEPLOY_HOOK_FRONTEND"
