@@ -4,11 +4,29 @@ import type { Prisma } from '@prisma/client';
 import { estadoDelPago } from '../domain/reglasPedido';
 import { HttpError } from './errors';
 import { logger } from './logger';
-import { devolverPago, obtenerPago } from './mercadoPago';
+import { buscarPagos, devolverPago, obtenerPago } from './mercadoPago';
 import { prisma } from './prisma';
 
 // Una reserva ocupa lugar en el cupo mientras espera el pago y cuando ya está pagada.
 export const OCUPAN_CUPO = { in: ['PENDIENTE_PAGO' as const, 'CONFIRMADO' as const] };
+
+/**
+ * Confirma las reservas pendientes que ya tienen un pago aprobado en Mercado Pago. Hace falta
+ * cuando el cliente pagó pero no volvió a la app: en local Mercado Pago no muestra el botón
+ * para volver ni puede llegar al webhook. Si Mercado Pago no responde, se sigue sin cambios.
+ */
+export async function sincronizarPendientes(where: Prisma.PedidoWhereInput) {
+  const pendientes = await prisma.pedido.findMany({ where: { ...where, estado: 'PENDIENTE_PAGO' }, select: { id: true } });
+  for (const { id } of pendientes) {
+    try {
+      const { results } = await buscarPagos(id);
+      const aprobado = results.find((p) => p.status === 'approved');
+      if (aprobado) await procesarPago(String(aprobado.id));
+    } catch (err) {
+      logger.warn({ evento: 'sincronizar_pago_fallo', pedidoId: id, err }, 'No se pudo consultar el pago en Mercado Pago');
+    }
+  }
+}
 
 /** Cancela las reservas cuyo plazo para pagar ya pasó: liberan su lugar en el cupo. */
 export async function vencerReservasImpagas(db: Prisma.TransactionClient = prisma) {
