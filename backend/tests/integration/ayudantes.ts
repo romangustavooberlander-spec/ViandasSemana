@@ -46,6 +46,10 @@ export function simularMercadoPago() {
         preferencias.push(cuerpo);
         return responder(201, { id: `pref-${cuerpo.external_reference}`, init_point: `https://mp.test/pagar/${cuerpo.external_reference}` });
       }
+      if (ruta === '/v1/payments/search') {
+        const pedido = new URL(url).searchParams.get('external_reference');
+        return responder(200, { results: [...pagos.values()].filter((p) => p.external_reference === pedido) });
+      }
       const devolucion = /^\/v1\/payments\/(\w+)\/refunds$/.exec(ruta);
       if (devolucion) {
         devoluciones.push(devolucion[1]);

@@ -4,7 +4,7 @@ import { prisma } from '../lib/prisma';
 import { HttpError } from '../lib/errors';
 import { logger } from '../lib/logger';
 import { crearPreferencia, devolverPago } from '../lib/mercadoPago';
-import { OCUPAN_CUPO, vencerReservasImpagas } from '../lib/pagos';
+import { OCUPAN_CUPO, sincronizarPendientes, vencerReservasImpagas } from '../lib/pagos';
 import { autenticar, exigirRol } from '../middleware/auth';
 import { validarCancelacion, validarNuevoPedido, vencimientoDelPago, yaPasoElCorte } from '../domain/reglasPedido';
 
@@ -22,9 +22,11 @@ pedidosRouter.use(autenticar);
 // El cocinero ve todos los pedidos; el cliente, sólo los suyos.
 // "cancelable" y "pagable" le dicen al frontend qué botones mostrar.
 pedidosRouter.get('/', async (req, res) => {
+  const where = req.usuario!.rol === 'COCINERO' ? {} : { usuarioId: req.usuario!.id };
+  await sincronizarPendientes(where);
   await vencerReservasImpagas();
   const pedidos = await prisma.pedido.findMany({
-    where: req.usuario!.rol === 'COCINERO' ? {} : { usuarioId: req.usuario!.id },
+    where,
     include: {
       menu: true,
       usuario: { select: { id: true, nombre: true } },
