@@ -1,134 +1,169 @@
+/* ViandasSemana — estética "mostrador de comida rápida": rojo tomate, mostaza y tipografía ancha y pesada.
+   Sólo cambian colores, tipografía y formas: las clases son las mismas que usan los componentes. */
 :root {
-  --fondo: #fff8f0;
+  --rojo: #db2215;
+  --rojo-oscuro: #a3150c;
+  --mostaza: #ffbf1f;
+  --mostaza-oscura: #f0a500;
+  --mostaza-suave: #fff1c7;
+  --carbon: #23201d;
+  --suave: #6b645d;
+  --fondo: #f4f4f2;
   --tarjeta: #ffffff;
-  --texto: #2b2118;
-  --suave: #7a6a5c;
-  --borde: #f0e2d2;
-  --primario: #e8602c;
-  --primario-oscuro: #b93a12;
-  --verde: #3f8f5a;
-  --peligro: #c43d3d;
-  font-family: 'Nunito', system-ui, sans-serif;
-  color: var(--texto);
+  --borde: #e6e3de;
+  --verde: #1f7a3d;
+  --peligro: var(--rojo);
+  /* Compatibilidad con nombres anteriores */
+  --texto: var(--carbon);
+  --primario: var(--rojo);
+  --primario-oscuro: var(--rojo-oscuro);
+  font-family: 'Archivo', system-ui, sans-serif;
+  color: var(--carbon);
   background: var(--fondo);
 }
 
 * { box-sizing: border-box; }
 body { margin: 0; min-height: 100vh; }
-h1, h2, h3 { margin: 0; line-height: 1.2; }
+h1, h2, h3 { margin: 0; line-height: 1.05; font-weight: 800; font-stretch: 118%; letter-spacing: -0.01em; }
 button, input, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--mostaza); outline-offset: 2px; }
 
-/* Barra superior */
+/* Barra superior: franja roja */
 .barra {
   display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-  padding: 0.75rem clamp(1rem, 4vw, 2.5rem);
-  background: var(--tarjeta); border-bottom: 1px solid var(--borde);
+  padding: 0.7rem clamp(1rem, 4vw, 2.5rem);
+  background: var(--rojo); color: #fff;
   position: sticky; top: 0; z-index: 1;
 }
-.marca { display: flex; align-items: center; gap: 0.6rem; font-size: 1.35rem; font-weight: 800; }
-.marca b { color: var(--primario); }
-.usuario { display: flex; align-items: center; gap: 0.8rem; text-align: right; }
+.marca { display: flex; align-items: center; gap: 0.6rem; font-size: 1.45rem; font-weight: 800; font-stretch: 118%; }
+.marca b { color: var(--mostaza); }
+.marca img { background: #fff; border-radius: 12px; padding: 3px; }
+.usuario { display: flex; align-items: center; gap: 0.9rem; text-align: right; }
 .usuario span { display: flex; flex-direction: column; font-weight: 700; }
-.usuario small { color: var(--suave); font-weight: 600; }
+.usuario small { color: #ffd9d4; font-weight: 600; }
+.barra .boton.secundario { color: #fff; box-shadow: inset 0 0 0 2px rgb(255 255 255 / 55%); }
+.barra .boton.secundario:hover { background: rgb(255 255 255 / 14%); }
 
-.contenido { max-width: 960px; margin: 0 auto; padding: 1.5rem clamp(1rem, 4vw, 2rem) 4rem; }
+.contenido { max-width: 1040px; margin: 0 auto; padding: 1.75rem clamp(1rem, 4vw, 2rem) 4rem; }
 
-/* Botones */
+/* Botones: el principal es mostaza con texto oscuro, como el botón de pedir en un mostrador */
 .boton {
-  border: 0; border-radius: 999px; padding: 0.6rem 1.2rem; cursor: pointer;
-  background: var(--primario); color: #fff; font-weight: 700;
+  border: 0; border-radius: 999px; padding: 0.7rem 1.35rem; cursor: pointer;
+  background: var(--mostaza); color: var(--carbon); font-weight: 800;
   transition: background 0.15s, transform 0.1s;
 }
-.boton:hover { background: var(--primario-oscuro); }
+.boton:hover { background: var(--mostaza-oscura); }
 .boton:active { transform: scale(0.97); }
 .boton:disabled { opacity: 0.6; cursor: wait; }
-.boton.secundario { background: transparent; color: var(--primario-oscuro); box-shadow: inset 0 0 0 2px var(--borde); }
-.boton.secundario:hover { background: var(--fondo); }
-.boton.peligro { background: transparent; color: var(--peligro); box-shadow: inset 0 0 0 2px #f3d3d3; }
-.boton.peligro:hover { background: #fdf0f0; }
-.boton.chico { padding: 0.35rem 0.9rem; font-size: 0.9rem; }
+.boton.secundario { background: transparent; color: var(--carbon); box-shadow: inset 0 0 0 2px var(--carbon); }
+.boton.secundario:hover { background: var(--carbon); color: #fff; }
+.boton.peligro { background: transparent; color: var(--rojo); box-shadow: inset 0 0 0 2px var(--rojo); }
+.boton.peligro:hover { background: var(--rojo); color: #fff; }
+.boton.chico { padding: 0.4rem 0.95rem; font-size: 0.9rem; }
 
 /* Pestañas */
-.pestanas { display: flex; gap: 0.25rem; padding: 0.25rem; background: #f6eadc; border-radius: 999px; margin-bottom: 1.5rem; }
+.pestanas { display: flex; gap: 0.35rem; padding: 0.35rem; background: var(--tarjeta); border-radius: 999px; margin-bottom: 1.75rem; box-shadow: inset 0 0 0 2px var(--borde); }
 .pestanas button {
-  flex: 1; border: 0; background: transparent; padding: 0.6rem 1rem; border-radius: 999px;
-  font-weight: 700; color: var(--suave); cursor: pointer;
+  flex: 1; border: 0; background: transparent; padding: 0.7rem 1rem; border-radius: 999px;
+  font-weight: 800; color: var(--suave); cursor: pointer;
 }
-.pestanas button.activa { background: var(--tarjeta); color: var(--texto); box-shadow: 0 1px 4px rgb(43 33 24 / 12%); }
+.pestanas button:hover { color: var(--carbon); }
+.pestanas button.activa { background: var(--rojo); color: #fff; }
 
 /* Tarjetas y formularios */
-.tarjeta { background: var(--tarjeta); border: 1px solid var(--borde); border-radius: 18px; padding: 1.25rem; box-shadow: 0 2px 10px rgb(43 33 24 / 5%); }
+.tarjeta { background: var(--tarjeta); border-radius: 22px; padding: 1.35rem; box-shadow: 0 1px 0 var(--borde), 0 10px 24px -18px rgb(35 32 29 / 45%); }
 .formulario { display: flex; flex-direction: column; gap: 1rem; }
+.formulario h3 { font-size: 1.5rem; }
 .formulario label { display: flex; flex-direction: column; gap: 0.35rem; font-weight: 700; font-size: 0.95rem; }
 .formulario small { color: var(--suave); font-weight: 600; }
 input, textarea {
-  border: 2px solid var(--borde); border-radius: 12px; padding: 0.6rem 0.8rem; background: #fffdfa; outline: none;
+  border: 2px solid var(--borde); border-radius: 12px; padding: 0.65rem 0.85rem; background: #fff; outline: none;
 }
-input:focus, textarea:focus { border-color: var(--primario); }
+input:focus, textarea:focus { border-color: var(--carbon); }
 
-/* Pantalla de acceso */
+/* Pantalla de acceso: bloque rojo con titular grande */
 .acceso {
-  max-width: 960px; margin: 0 auto; padding: clamp(1.5rem, 6vw, 4rem) clamp(1rem, 4vw, 2rem);
-  display: grid; grid-template-columns: 1.1fr 1fr; gap: 3rem; align-items: center;
+  max-width: 1040px; margin: 0 auto; padding: clamp(1.25rem, 5vw, 3.5rem) clamp(1rem, 4vw, 2rem);
+  display: grid; grid-template-columns: 1.15fr 1fr; gap: clamp(1.25rem, 3vw, 2.5rem); align-items: stretch;
 }
-.presentacion h1 { font-size: clamp(2rem, 5vw, 2.8rem); margin: 1rem 0; }
-.presentacion p { color: var(--suave); font-size: 1.1rem; line-height: 1.5; }
+.presentacion {
+  background: var(--rojo); color: #fff; border-radius: 28px; padding: clamp(1.75rem, 4vw, 3rem);
+  display: flex; flex-direction: column; justify-content: space-between; gap: 2rem; min-height: 440px; position: relative; overflow: hidden;
+}
+.presentacion::after { /* plato mostaza que asoma por la esquina */
+  content: ''; position: absolute; width: 230px; height: 230px; border-radius: 50%;
+  background: var(--mostaza); top: -80px; right: -80px;
+}
+.presentacion img { background: #fff; border-radius: 22px; padding: 8px; width: 84px; height: 84px; }
+.presentacion h1 { font-size: clamp(2.2rem, 5vw, 3.3rem); margin: 0 0 1rem; max-width: 11ch; }
+.presentacion p { color: #ffe3df; font-size: 1.1rem; line-height: 1.5; margin: 0; max-width: 34ch; }
+.presentacion > * { position: relative; z-index: 1; }
+.acceso > .tarjeta { align-self: center; }
 .acceso .pestanas { margin-bottom: 0.25rem; }
-@media (max-width: 720px) { .acceso { grid-template-columns: 1fr; gap: 1.5rem; } }
+@media (max-width: 760px) {
+  .acceso { grid-template-columns: 1fr; }
+  .presentacion { min-height: 300px; }
+}
 
 /* Listado de menús */
-.encabezado { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
-.interruptor { display: flex; gap: 0.5rem; align-items: center; color: var(--suave); font-weight: 600; cursor: pointer; }
-.interruptor input { accent-color: var(--primario); width: 1.1rem; height: 1.1rem; }
-.grilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
-.menu { display: flex; flex-direction: column; gap: 0.6rem; }
+.encabezado { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.1rem; flex-wrap: wrap; }
+.interruptor { display: flex; gap: 0.5rem; align-items: center; color: var(--suave); font-weight: 700; cursor: pointer; }
+.interruptor input { accent-color: var(--rojo); width: 1.15rem; height: 1.15rem; }
+.grilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 1.1rem; }
+.menu { display: flex; flex-direction: column; gap: 0.65rem; position: relative; padding-top: 1.1rem; border-top: 8px solid var(--mostaza); }
 .menu header, .dia header { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; }
-.menu h3, .dia h3 { font-size: 1.1rem; }
+.menu h3, .dia h3 { font-size: 1.3rem; }
 .menu h3::first-letter, .dia h3::first-letter { text-transform: uppercase; }
-.menu .descripcion { margin: 0; font-size: 1.05rem; flex: 1; }
-.menu.cerrado { opacity: 0.65; }
+.menu .descripcion { margin: 0; font-size: 1.1rem; font-weight: 600; line-height: 1.35; flex: 1; }
+.menu.cerrado { opacity: 0.6; border-top-color: var(--borde); }
 .detalle { margin: 0; color: var(--suave); font-size: 0.9rem; }
-.cupo { height: 8px; border-radius: 999px; background: #f6eadc; overflow: hidden; }
-.cupo div { height: 100%; background: var(--primario); border-radius: 999px; }
-.acciones { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 0.25rem; }
-.acciones input { width: 5rem; }
-.etiqueta { font-size: 0.8rem; font-weight: 800; padding: 0.2rem 0.6rem; border-radius: 999px; white-space: nowrap; }
-.etiqueta.verde { background: #e3f3e8; color: var(--verde); }
-.etiqueta.naranja { background: #fde7dc; color: var(--primario-oscuro); }
-.etiqueta.gris { background: #eee8e2; color: var(--suave); }
-.menu-form { margin-bottom: 1.5rem; border-color: var(--primario); }
+.cupo { height: 10px; border-radius: 999px; background: #efece7; overflow: hidden; }
+.cupo div { height: 100%; background: var(--rojo); border-radius: 999px; }
+.acciones { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 0.3rem; }
+.acciones input { width: 5rem; text-align: center; font-weight: 700; }
+.etiqueta { font-size: 0.8rem; font-weight: 800; padding: 0.25rem 0.65rem; border-radius: 999px; white-space: nowrap; }
+.etiqueta.verde { background: #def2e4; color: var(--verde); }
+.etiqueta.naranja { background: var(--mostaza-suave); color: #8a4b00; }
+.etiqueta.gris { background: #ecebe8; color: var(--suave); }
+.menu .etiqueta.verde { background: var(--rojo); color: #fff; transform: rotate(3deg); } /* cupo como sticker de precio */
+.menu-form { margin-bottom: 1.5rem; border-top: 8px solid var(--rojo); }
 .campos { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1rem; }
 
 /* Pedidos por día */
-.dia { margin-bottom: 1rem; }
-.total { text-align: center; background: #fde7dc; color: var(--primario-oscuro); border-radius: 14px; padding: 0.4rem 0.9rem; }
-.total strong { display: block; font-size: 1.6rem; line-height: 1; }
-.total span { font-size: 0.75rem; font-weight: 700; }
+.dia { margin-bottom: 1.1rem; border-left: 8px solid var(--mostaza); }
+.total {
+  display: grid; place-items: center; text-align: center; width: 92px; height: 92px; flex: none;
+  background: var(--mostaza); color: var(--carbon); border-radius: 50%;
+}
+.total strong { display: block; font-size: 2.1rem; line-height: 1; font-weight: 800; font-stretch: 118%; }
+.total span { font-size: 0.68rem; font-weight: 800; line-height: 1.1; padding: 0 0.6rem; }
 .lista { list-style: none; margin: 1rem 0 0; padding: 0; }
-.lista li { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0; border-top: 1px solid var(--borde); }
+.lista li { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; padding: 0.7rem 0; border-top: 2px dashed var(--borde); }
+.lista li b { font-size: 1.15rem; }
 .lista li.cancelado { color: var(--suave); text-decoration: line-through; }
 
-.vacio { text-align: center; color: var(--suave); padding: 3rem 1rem; }
+.vacio { text-align: center; color: var(--suave); padding: 3rem 1rem; font-size: 1.1rem; }
 
 /* Avisos */
 .aviso {
   position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%);
-  padding: 0.8rem 1.4rem; border-radius: 14px; color: #fff; font-weight: 700; cursor: pointer;
-  box-shadow: 0 6px 20px rgb(43 33 24 / 25%); max-width: calc(100% - 2rem);
+  padding: 0.85rem 1.4rem; border-radius: 14px; color: #fff; font-weight: 700; cursor: pointer;
+  box-shadow: 0 10px 28px rgb(35 32 29 / 30%); max-width: calc(100% - 2rem);
   animation: aparecer 0.2s ease-out;
 }
-.aviso.ok { background: var(--verde); }
-.aviso.error { background: var(--peligro); }
+.aviso.ok { background: var(--carbon); box-shadow: inset 6px 0 0 var(--mostaza), 0 10px 28px rgb(35 32 29 / 30%); }
+.aviso.error { background: var(--rojo); }
 @keyframes aparecer { from { opacity: 0; transform: translate(-50%, 10px); } }
+@media (prefers-reduced-motion: reduce) { .aviso { animation: none; } .boton { transition: none; } }
 
 /* Celular: en la barra queda sólo el logo para que entren el nombre y "Salir". */
 @media (max-width: 520px) {
   .marca span { display: none; }
-  .pestanas button { padding: 0.6rem 0.5rem; font-size: 0.9rem; }
+  .pestanas button { padding: 0.65rem 0.5rem; font-size: 0.9rem; }
 }
 
 /* Recuperación de contraseña y pagos */
-.enlace { background: none; border: 0; padding: 0; color: var(--primario-oscuro); font-weight: 700; cursor: pointer; text-decoration: underline; align-self: center; }
+.enlace { background: none; border: 0; padding: 0; color: var(--rojo-oscuro); font-weight: 700; cursor: pointer; text-decoration: underline; align-self: center; }
 .formulario .ayuda { margin: 0; color: var(--suave); line-height: 1.4; }
-.precio { font-weight: 800; color: var(--primario-oscuro); }
+.precio { margin: 0; font-weight: 800; font-stretch: 118%; font-size: 1.25rem; color: var(--rojo); }
 .estado-pedido { display: flex; gap: 0.5rem; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
