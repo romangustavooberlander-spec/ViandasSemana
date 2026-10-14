@@ -1,0 +1,17 @@
+' Estilo común de los diagramas UML de ViandasSemana
+skinparam defaultFontName Helvetica
+skinparam shadowing false
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #fff4cc
+  BorderColor #b08900
+}
+skinparam actor {
+  BackgroundColor #dbe7f3
+  BorderColor #2f5d8a
+}
+skinparam rectangle {
+  BorderColor #555555
+}
+skinparam arrowColor #444444

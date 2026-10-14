@@ -1,0 +1,47 @@
+@startuml secuencia-reserva-pago
+!include estilo.iuml
+title Reserva y pago de una vianda (CU-09, CU-13, CU-14, CU-15)
+autonumber
+actor Cliente
+participant "Frontend\n(React)" as F
+participant "API\n/api/pedidos" as P
+participant "lib/pagos.ts\nlib/mercadoPago.ts" as L
+database "PostgreSQL" as DB
+participant "Mercado Pago" as MP
+
+Cliente -> F : elige menú y cantidad
+F -> P : POST /api/pedidos {menuId, cantidad}\nAuthorization: Bearer token
+P -> DB : BEGIN; SELECT ... FROM "MenuDia" FOR UPDATE
+P -> DB : vencer reservas impagas
+P -> DB : SUM(cantidad) de pedidos PENDIENTE_PAGO y CONFIRMADO
+P -> P : validarNuevoPedido()\n(cupo y hora de corte)
+alt sin cupo o fuera de horario
+  P --> F : 409 {error, codigo: CUPO_COMPLETO | FUERA_DE_HORARIO}
+else válido
+  P -> DB : INSERT Pedido (PENDIENTE_PAGO) + Pago (PENDIENTE, monto, venceEn)
+  P -> DB : COMMIT
+  P -> L : crearPreferencia()
+  L -> MP : POST /checkout/preferences
+  alt Mercado Pago no responde o da error
+    MP --> L : error / sin conexión
+    L --> P : HttpError 502 o 503
+    P -> DB : Pedido y Pago → CANCELADO (libera el cupo)
+    P --> F : 502 "Probá de nuevo en unos minutos"
+  else ok
+    MP --> L : {id, init_point}
+    P -> DB : guarda preferenciaId y urlPago
+    P --> F : 201 {pedido, urlPago}
+    F -> MP : redirige al cliente a urlPago
+    Cliente -> MP : paga con tarjeta
+    MP -> P : POST /api/pagos/notificacion (webhook, sólo en producción)
+    MP --> F : vuelve a /?pedido=ID&payment_id=...
+    F -> P : POST /api/pagos/notificacion {data: {id}}
+    P -> L : procesarPago(id)
+    L -> MP : GET /v1/payments/{id}
+    MP --> L : {status, transaction_amount, external_reference}
+    L -> DB : FOR UPDATE del pedido; si APROBADO y monto correcto:\nPago → APROBADO, Pedido → CONFIRMADO
+    P --> F : {estadoPedido: CONFIRMADO}
+    F --> Cliente : "¡Pago aprobado! Tu reserva está confirmada."
+  end
+end
+@enduml

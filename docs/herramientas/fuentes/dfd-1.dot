@@ -1,0 +1,82 @@
+// DFD Nivel 1 — consigna 4.2
+// Los flujos con entidades externas son exactamente los del Nivel 0 (ver docs/dfd.md, tabla de consistencia).
+digraph dfd1 {
+  graph [rankdir=LR, fontname="Helvetica", nodesep=0.55, ranksep=1.5, pad=0.3, newrank=true,
+         label="ViandasSemana — DFD Nivel 1", labelloc=t, fontsize=18];
+  node  [fontname="Helvetica", fontsize=12];
+  edge  [fontname="Helvetica", fontsize=9.5, color="#444444", arrowsize=0.7];
+
+  node [shape=box, style="filled", fillcolor="#dbe7f3", color="#2f5d8a", penwidth=1.6, margin="0.2,0.12"];
+  cliente  [label="Cliente"];
+  cocinero [label="Cocinero"];
+  mp       [label="Mercado Pago"];
+  correo   [label="Servicio de correo"];
+  logs     [label="Plataforma de logs"];
+
+  node [shape=none, margin=0];
+  p1 [label=<<TABLE STYLE="ROUNDED" BORDER="2" CELLBORDER="0" CELLPADDING="6" BGCOLOR="#fff4cc" COLOR="#b08900"><TR><TD><B>1</B></TD></TR><TR><TD>Gestionar<BR/>acceso</TD></TR></TABLE>>];
+  p2 [label=<<TABLE STYLE="ROUNDED" BORDER="2" CELLBORDER="0" CELLPADDING="6" BGCOLOR="#fff4cc" COLOR="#b08900"><TR><TD><B>2</B></TD></TR><TR><TD>Gestionar<BR/>menús</TD></TR></TABLE>>];
+  p3 [label=<<TABLE STYLE="ROUNDED" BORDER="2" CELLBORDER="0" CELLPADDING="6" BGCOLOR="#fff4cc" COLOR="#b08900"><TR><TD><B>3</B></TD></TR><TR><TD>Gestionar<BR/>pedidos</TD></TR></TABLE>>];
+  p4 [label=<<TABLE STYLE="ROUNDED" BORDER="2" CELLBORDER="0" CELLPADDING="6" BGCOLOR="#fff4cc" COLOR="#b08900"><TR><TD><B>4</B></TD></TR><TR><TD>Procesar<BR/>pagos</TD></TR></TABLE>>];
+  p5 [label=<<TABLE STYLE="ROUNDED" BORDER="2" CELLBORDER="0" CELLPADDING="6" BGCOLOR="#fff4cc" COLOR="#b08900"><TR><TD><B>5</B></TD></TR><TR><TD>Registrar<BR/>eventos</TD></TR></TABLE>>];
+
+  d1 [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="5" BGCOLOR="#e3f2e1" COLOR="#3c7a35"><TR><TD><B>D1</B></TD><TD SIDES="TB">Usuarios y roles</TD></TR></TABLE>>];
+  d2 [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="5" BGCOLOR="#e3f2e1" COLOR="#3c7a35"><TR><TD><B>D2</B></TD><TD SIDES="TB">Códigos de recuperación</TD></TR></TABLE>>];
+  d3 [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="5" BGCOLOR="#e3f2e1" COLOR="#3c7a35"><TR><TD><B>D3</B></TD><TD SIDES="TB">Menús del día</TD></TR></TABLE>>];
+  d4 [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="5" BGCOLOR="#e3f2e1" COLOR="#3c7a35"><TR><TD><B>D4</B></TD><TD SIDES="TB">Pedidos</TD></TR></TABLE>>];
+  d5 [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="5" BGCOLOR="#e3f2e1" COLOR="#3c7a35"><TR><TD><B>D5</B></TD><TD SIDES="TB">Pagos</TD></TR></TABLE>>];
+
+  // Entidades a la izquierda, servicios externos a la derecha
+  {rank=same; cliente; cocinero;}
+  {rank=same; p1; p2; p3;}
+  {rank=same; mp; correo; logs;}
+
+  // 1 Gestionar acceso
+  cliente  -> p1 [label="datos de registro\lcredenciales\ltoken de sesión\ldatos de recuperación\l"];
+  cocinero -> p1 [label="credenciales\ltoken de sesión\ldatos de recuperación\l"];
+  p1 -> cliente  [label="token de sesión"];
+  p1 -> cocinero [label="token de sesión"];
+  p1 -> d1 [label="usuario nuevo\lhash de contraseña\lversión de token\l"];
+  d1 -> p1 [label="usuario y rol"];
+  p1 -> d2 [label="código (hash)\lintentos y uso\l"];
+  d2 -> p1 [label="código vigente"];
+  p1 -> correo [label="correo con código\lde recuperación\l"];
+  p1 -> p2 [label="identidad y rol"];
+  p1 -> p3 [label="identidad y rol"];
+
+  // 2 Gestionar menús
+  cocinero -> p2 [label="datos del menú\lmenú a eliminar\l"];
+  p2 -> cocinero [label="menús con viandas reservadas"];
+  p2 -> cliente  [label="menús con precio y disponibilidad"];
+  p2 -> d3 [label="menú"];
+  d3 -> p2 [label="menús"];
+  d4 -> p2 [label="viandas reservadas"];
+
+  // 3 Gestionar pedidos
+  cliente -> p3 [label="datos del pedido\lpedido a cancelar o pagar\l"];
+  p3 -> cliente  [label="mis pedidos con estado de pago\lURL de pago\l"];
+  p3 -> cocinero [label="pedidos de los clientes por día"];
+  d3 -> p3 [label="cupo, hora de corte y precio"];
+  p3 -> d4 [label="pedido y estado"];
+  d4 -> p3 [label="pedidos"];
+  p3 -> d5 [label="pago pendiente\l(monto y vencimiento)\l"];
+  d5 -> p3 [label="estado del pago\lURL de pago\l"];
+  p3 -> p4 [label="datos de la orden de pago\lpago a devolver\l"];
+  p4 -> p3 [label="URL de pago"];
+
+  // 4 Procesar pagos
+  cliente -> p4 [label="id de pago"];
+  p4 -> cliente [label="resultado del pago"];
+  p4 -> mp [label="orden de pago\lid de pago a consultar\lpago a devolver\l"];
+  mp -> p4 [label="URL de pago\lnotificación de pago\lestado y monto del pago\l"];
+  p4 -> d5 [label="estado del pago\lid de Mercado Pago\lURL de pago\l"];
+  d5 -> p4 [label="pago esperado\lpagos vencidos\l"];
+  p4 -> d4 [label="estado del pedido"];
+  d4 -> p4 [label="pedido"];
+
+  // 5 Registrar eventos
+  p1 -> p5 [label="eventos de acceso"];
+  p3 -> p5 [label="pedidos rechazados"];
+  p4 -> p5 [label="eventos de pago"];
+  p5 -> logs [label="registro de eventos\l(JSON)\l"];
+}

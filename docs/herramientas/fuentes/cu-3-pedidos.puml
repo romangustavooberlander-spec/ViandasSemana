@@ -1,0 +1,29 @@
+@startuml cu-3-pedidos
+!include estilo.iuml
+title Módulo 3 — Pedidos: casos de uso
+left to right direction
+actor "Cliente" as Cliente
+actor "Cocinero" as Cocinero
+actor "Mercado Pago" as MP <<sistema externo>>
+rectangle "Pedidos" {
+  usecase "CU-09 Registrar pedido" as CU09
+  usecase "CU-10 Consultar mis pedidos" as CU10
+  usecase "CU-11 Cancelar pedido" as CU11
+  usecase "CU-12 Consultar viandas a cocinar" as CU12
+}
+rectangle "Pagos" {
+  usecase "CU-13 Generar orden de pago" as CU13
+  usecase "CU-16 Devolver pago" as CU16
+  usecase "CU-17 Vencer reservas impagas" as CU17
+}
+Cliente --> CU09
+Cliente --> CU10
+Cliente --> CU11
+Cocinero --> CU12
+CU09 ..> CU13 : <<include>>
+CU09 ..> CU17 : <<include>>
+CU10 ..> CU17 : <<include>>
+CU16 ..> CU11 : <<extend>>\n[pedido ya pagado]
+CU13 --> MP
+CU16 --> MP
+@enduml

@@ -1,0 +1,46 @@
+// DFD Nivel 2 — proceso 4 Procesar pagos (consigna 4.3)
+digraph dfd2_pagos {
+  graph [rankdir=TB, fontname="Helvetica", nodesep=0.5, ranksep=1.4, pad=0.3,
+         label="DFD Nivel 2 — Proceso 4: Procesar pagos", labelloc=t, fontsize=18];
+  node  [fontname="Helvetica", fontsize=12];
+  edge  [fontname="Helvetica", fontsize=9.5, color="#444444", arrowsize=0.7];
+  node [shape=box, style="filled", fillcolor="#dbe7f3", color="#2f5d8a", penwidth=1.6, margin="0.2,0.12"];
+  cliente [label="Cliente"]; mp [label="Mercado Pago"];
+  p3 [shape=none, margin=0, label=<<TABLE STYLE="ROUNDED" BORDER="2" CELLBORDER="0" CELLPADDING="6" BGCOLOR="#eeeeee" COLOR="#b08900"><TR><TD><B>3</B></TD></TR><TR><TD>Gestionar<BR/>pedidos</TD></TR></TABLE>>];
+  p5 [shape=none, margin=0, label=<<TABLE STYLE="ROUNDED" BORDER="2" CELLBORDER="0" CELLPADDING="6" BGCOLOR="#eeeeee" COLOR="#b08900"><TR><TD><B>5</B></TD></TR><TR><TD>Registrar<BR/>eventos</TD></TR></TABLE>>];
+  p41 [shape=none, margin=0, label=<<TABLE STYLE="ROUNDED" BORDER="2" CELLBORDER="0" CELLPADDING="6" BGCOLOR="#fff4cc" COLOR="#b08900"><TR><TD><B>4.1</B></TD></TR><TR><TD>Crear orden<BR/>de pago</TD></TR></TABLE>>];
+  p42 [shape=none, margin=0, label=<<TABLE STYLE="ROUNDED" BORDER="2" CELLBORDER="0" CELLPADDING="6" BGCOLOR="#fff4cc" COLOR="#b08900"><TR><TD><B>4.2</B></TD></TR><TR><TD>Consultar<BR/>estado del pago</TD></TR></TABLE>>];
+  p43 [shape=none, margin=0, label=<<TABLE STYLE="ROUNDED" BORDER="2" CELLBORDER="0" CELLPADDING="6" BGCOLOR="#fff4cc" COLOR="#b08900"><TR><TD><B>4.3</B></TD></TR><TR><TD>Actualizar<BR/>reserva</TD></TR></TABLE>>];
+  p44 [shape=none, margin=0, label=<<TABLE STYLE="ROUNDED" BORDER="2" CELLBORDER="0" CELLPADDING="6" BGCOLOR="#fff4cc" COLOR="#b08900"><TR><TD><B>4.4</B></TD></TR><TR><TD>Devolver<BR/>pago</TD></TR></TABLE>>];
+  p45 [shape=none, margin=0, label=<<TABLE STYLE="ROUNDED" BORDER="2" CELLBORDER="0" CELLPADDING="6" BGCOLOR="#fff4cc" COLOR="#b08900"><TR><TD><B>4.5</B></TD></TR><TR><TD>Vencer reservas<BR/>impagas</TD></TR></TABLE>>];
+  d4 [shape=none, margin=0, label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="5" BGCOLOR="#e3f2e1" COLOR="#3c7a35"><TR><TD><B>D4</B></TD><TD SIDES="TB">Pedidos</TD></TR></TABLE>>];
+  d5 [shape=none, margin=0, label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="5" BGCOLOR="#e3f2e1" COLOR="#3c7a35"><TR><TD><B>D5</B></TD><TD SIDES="TB">Pagos</TD></TR></TABLE>>];
+
+  p3 -> p41 [label="datos de la orden de pago"];
+  p41 -> mp [label="orden de pago\l(ítem, monto,\lvencimiento)\l"];
+  mp -> p41 [label="URL de pago"];
+  p41 -> d5 [label="id de preferencia\lURL de pago\l"];
+  p41 -> p3 [label="URL de pago"];
+
+  mp -> p42 [label="notificación de pago"];
+  cliente -> p42 [label="id de pago"];
+  p42 -> mp [label="id de pago a consultar"];
+  mp -> p42 [label="estado y monto del pago"];
+  p42 -> p43 [label="pago verificado"];
+
+  d4 -> p43 [label="pedido"];
+  d5 -> p43 [label="pago esperado"];
+  p43 -> d5 [label="estado del pago\lid de Mercado Pago\l"];
+  p43 -> d4 [label="estado del pedido\l(CONFIRMADO o CANCELADO)\l"];
+  p43 -> cliente [label="resultado del pago"];
+  p43 -> p44 [label="pago a devolver\l(no esperado)\l"];
+  p43 -> p5 [label="eventos de pago"];
+
+  p3 -> p44 [label="pago a devolver\l(pedido cancelado)\l"];
+  p44 -> mp [label="pago a devolver"];
+  p44 -> p5 [label="eventos de pago"];
+
+  d5 -> p45 [label="pagos vencidos"];
+  p45 -> d5 [label="estado del pago\l(CANCELADO)\l"];
+  p45 -> d4 [label="estado del pedido\l(CANCELADO)\l"];
+}

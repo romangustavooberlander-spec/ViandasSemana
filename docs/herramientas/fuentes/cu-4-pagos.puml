@@ -1,0 +1,32 @@
+@startuml cu-4-pagos
+!include estilo.iuml
+title Módulo 4 — Pagos: casos de uso
+left to right direction
+actor "Cliente" as Cliente
+actor "Mercado Pago" as MP <<sistema externo>>
+rectangle "Pagos" {
+  usecase "CU-13 Generar orden de pago" as CU13
+  usecase "CU-14 Pagar reserva" as CU14
+  usecase "CU-15 Confirmar pago" as CU15
+  usecase "CU-16 Devolver pago" as CU16
+  usecase "CU-17 Vencer reservas impagas" as CU17
+}
+rectangle "Pedidos" {
+  usecase "CU-09 Registrar pedido" as CU09
+  usecase "CU-11 Cancelar pedido" as CU11
+}
+Cliente --> CU14
+CU14 --> MP
+CU13 --> MP
+MP --> CU15
+CU16 --> MP
+CU09 ..> CU13 : <<include>>
+CU14 ..> CU17 : <<include>>
+CU16 ..> CU11 : <<extend>>\n[pedido ya pagado]
+CU16 ..> CU15 : <<extend>>\n[pago no esperado]
+note bottom of CU17
+  No hay tarea programada: se ejecuta
+  cada vez que alguien consulta menús,
+  pedidos o pide pagar (vencimiento "perezoso").
+end note
+@enduml

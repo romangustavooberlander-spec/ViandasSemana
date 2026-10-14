@@ -1,0 +1,33 @@
+// DFD Nivel 2 — proceso 2 Gestionar menús (consigna 4.3)
+digraph dfd2_menus {
+  graph [rankdir=TB, fontname="Helvetica", nodesep=0.6, ranksep=1.5, pad=0.3,
+         label="DFD Nivel 2 — Proceso 2: Gestionar menús", labelloc=t, fontsize=18];
+  node  [fontname="Helvetica", fontsize=12];
+  edge  [fontname="Helvetica", fontsize=9.5, color="#444444", arrowsize=0.7];
+  node [shape=box, style="filled", fillcolor="#dbe7f3", color="#2f5d8a", penwidth=1.6, margin="0.2,0.12"];
+  cliente [label="Cliente"]; cocinero [label="Cocinero"];
+  p1 [shape=none, margin=0, label=<<TABLE STYLE="ROUNDED" BORDER="2" CELLBORDER="0" CELLPADDING="6" BGCOLOR="#eeeeee" COLOR="#b08900"><TR><TD><B>1</B></TD></TR><TR><TD>Gestionar<BR/>acceso</TD></TR></TABLE>>];
+  p21 [shape=none, margin=0, label=<<TABLE STYLE="ROUNDED" BORDER="2" CELLBORDER="0" CELLPADDING="6" BGCOLOR="#fff4cc" COLOR="#b08900"><TR><TD><B>2.1</B></TD></TR><TR><TD>Validar datos<BR/>del menú</TD></TR></TABLE>>];
+  p22 [shape=none, margin=0, label=<<TABLE STYLE="ROUNDED" BORDER="2" CELLBORDER="0" CELLPADDING="6" BGCOLOR="#fff4cc" COLOR="#b08900"><TR><TD><B>2.2</B></TD></TR><TR><TD>Guardar<BR/>menú</TD></TR></TABLE>>];
+  p23 [shape=none, margin=0, label=<<TABLE STYLE="ROUNDED" BORDER="2" CELLBORDER="0" CELLPADDING="6" BGCOLOR="#fff4cc" COLOR="#b08900"><TR><TD><B>2.3</B></TD></TR><TR><TD>Eliminar<BR/>menú</TD></TR></TABLE>>];
+  p24 [shape=none, margin=0, label=<<TABLE STYLE="ROUNDED" BORDER="2" CELLBORDER="0" CELLPADDING="6" BGCOLOR="#fff4cc" COLOR="#b08900"><TR><TD><B>2.4</B></TD></TR><TR><TD>Calcular<BR/>disponibilidad</TD></TR></TABLE>>];
+  d3 [shape=none, margin=0, label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="5" BGCOLOR="#e3f2e1" COLOR="#3c7a35"><TR><TD><B>D3</B></TD><TD SIDES="TB">Menús del día</TD></TR></TABLE>>];
+  d4 [shape=none, margin=0, label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="5" BGCOLOR="#e3f2e1" COLOR="#3c7a35"><TR><TD><B>D4</B></TD><TD SIDES="TB">Pedidos</TD></TR></TABLE>>];
+
+  p1 -> p21 [label="identidad y rol"];
+  p1 -> p23 [label="identidad y rol"];
+  p1 -> p24 [label="identidad y rol"];
+  cocinero -> p21 [label="datos del menú"];
+  p21 -> p22 [label="menú válido"];
+  d3 -> p22 [label="menú de esa fecha"];
+  p22 -> d3 [label="menú"];
+
+  cocinero -> p23 [label="menú a eliminar"];
+  d4 -> p23 [label="pedidos del menú"];
+  p23 -> d3 [label="menú a borrar"];
+
+  d3 -> p24 [label="menús"];
+  d4 -> p24 [label="viandas reservadas\l(pendientes de pago\ly confirmadas)\l"];
+  p24 -> cliente  [label="menús con precio\ly disponibilidad\l"];
+  p24 -> cocinero [label="menús con\lviandas reservadas\l"];
+}
