@@ -1,0 +1,103 @@
+@startuml der
+!include estilo.iuml
+title ViandasSemana — Modelo de datos (DER)\nFuente de verdad: backend/prisma/schema.prisma
+hide circle
+skinparam linetype ortho
+skinparam class {
+  BackgroundColor #ffffff
+  BorderColor #2f5d8a
+  HeaderBackgroundColor #dbe7f3
+}
+
+entity "Rol" as Rol {
+  * id : SERIAL <<PK>>
+  --
+  * nombre : TEXT <<UNIQUE>>
+}
+
+entity "Usuario" as Usuario {
+  * id : SERIAL <<PK>>
+  --
+  * email : TEXT <<UNIQUE>>
+  * nombre : TEXT
+  * passwordHash : TEXT
+  * rolId : INTEGER <<FK Rol.id>>
+  * versionToken : INTEGER = 0
+  * creadoEn : TIMESTAMP(3) = now()
+}
+
+entity "CodigoRecuperacion" as Codigo {
+  * id : SERIAL <<PK>>
+  --
+  * usuarioId : INTEGER <<FK Usuario.id>>
+  * codigoHash : TEXT
+  * venceEn : TIMESTAMP(3)
+  usadoEn : TIMESTAMP(3) NULL
+  * intentos : INTEGER = 0
+  * creadoEn : TIMESTAMP(3) = now()
+}
+
+entity "MenuDia" as MenuDia {
+  * id : SERIAL <<PK>>
+  --
+  * fecha : DATE <<UNIQUE>>
+  * descripcion : TEXT
+  * cupoMaximo : INTEGER
+  * horaCorte : TEXT ("HH:mm")
+  * precio : INTEGER (pesos)
+  * creadoEn : TIMESTAMP(3) = now()
+}
+
+entity "Pedido" as Pedido {
+  * id : SERIAL <<PK>>
+  --
+  * cantidad : INTEGER
+  * estado : EstadoPedido = PENDIENTE_PAGO
+  * usuarioId : INTEGER <<FK Usuario.id>>
+  * menuId : INTEGER <<FK MenuDia.id>>
+  * creadoEn : TIMESTAMP(3) = now()
+}
+
+entity "Pago" as Pago {
+  * id : SERIAL <<PK>>
+  --
+  * pedidoId : INTEGER <<FK Pedido.id>> <<UNIQUE>>
+  * monto : INTEGER (pesos)
+  * estado : EstadoPago = PENDIENTE
+  preferenciaId : TEXT NULL <<UNIQUE>>
+  urlPago : TEXT NULL
+  mpPagoId : TEXT NULL
+  * venceEn : TIMESTAMP(3)
+  * creadoEn : TIMESTAMP(3) = now()
+  * actualizadoEn : TIMESTAMP(3)
+}
+
+enum EstadoPedido {
+  PENDIENTE_PAGO
+  CONFIRMADO
+  CANCELADO
+}
+
+enum EstadoPago {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+  CANCELADO
+  DEVUELTO
+}
+
+Rol ||--o{ Usuario : "tiene"
+Usuario ||--o{ Codigo : "solicita"
+Usuario ||--o{ Pedido : "hace"
+MenuDia ||--o{ Pedido : "recibe"
+Pedido ||--o| Pago : "se paga con"
+Pedido .. EstadoPedido
+Pago .. EstadoPago
+
+legend bottom left
+  * = obligatorio (NOT NULL). Cardinalidad en notación pata de gallo:
+  || exactamente uno · o{ cero o muchos · o| cero o uno.
+  Borrados: CodigoRecuperacion y Pago se borran en cascada con su Usuario / Pedido;
+  un MenuDia o un Usuario con pedidos no se puede borrar (RESTRICT).
+endlegend
+@enduml

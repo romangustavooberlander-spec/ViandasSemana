@@ -1,0 +1,56 @@
+// DFD Nivel 2 — proceso 3 Gestionar pedidos (consigna 4.3)
+digraph dfd2_pedidos {
+  graph [rankdir=LR, fontname="Helvetica", nodesep=0.5, ranksep=1.4, pad=0.3,
+         label="DFD Nivel 2 — Proceso 3: Gestionar pedidos", labelloc=t, fontsize=18];
+  node  [fontname="Helvetica", fontsize=12];
+  edge  [fontname="Helvetica", fontsize=9.5, color="#444444", arrowsize=0.7];
+  node [shape=box, style="filled", fillcolor="#dbe7f3", color="#2f5d8a", penwidth=1.6, margin="0.2,0.12"];
+  cliente [label="Cliente"]; cocinero [label="Cocinero"];
+  p1 [shape=none, margin=0, label=<<TABLE STYLE="ROUNDED" BORDER="2" CELLBORDER="0" CELLPADDING="6" BGCOLOR="#eeeeee" COLOR="#b08900"><TR><TD><B>1</B></TD></TR><TR><TD>Gestionar<BR/>acceso</TD></TR></TABLE>>];
+  p4 [shape=none, margin=0, label=<<TABLE STYLE="ROUNDED" BORDER="2" CELLBORDER="0" CELLPADDING="6" BGCOLOR="#eeeeee" COLOR="#b08900"><TR><TD><B>4</B></TD></TR><TR><TD>Procesar<BR/>pagos</TD></TR></TABLE>>];
+  p5 [shape=none, margin=0, label=<<TABLE STYLE="ROUNDED" BORDER="2" CELLBORDER="0" CELLPADDING="6" BGCOLOR="#eeeeee" COLOR="#b08900"><TR><TD><B>5</B></TD></TR><TR><TD>Registrar<BR/>eventos</TD></TR></TABLE>>];
+  p31 [shape=none, margin=0, label=<<TABLE STYLE="ROUNDED" BORDER="2" CELLBORDER="0" CELLPADDING="6" BGCOLOR="#fff4cc" COLOR="#b08900"><TR><TD><B>3.1</B></TD></TR><TR><TD>Validar<BR/>pedido</TD></TR></TABLE>>];
+  p32 [shape=none, margin=0, label=<<TABLE STYLE="ROUNDED" BORDER="2" CELLBORDER="0" CELLPADDING="6" BGCOLOR="#fff4cc" COLOR="#b08900"><TR><TD><B>3.2</B></TD></TR><TR><TD>Registrar<BR/>reserva</TD></TR></TABLE>>];
+  p33 [shape=none, margin=0, label=<<TABLE STYLE="ROUNDED" BORDER="2" CELLBORDER="0" CELLPADDING="6" BGCOLOR="#fff4cc" COLOR="#b08900"><TR><TD><B>3.3</B></TD></TR><TR><TD>Consultar<BR/>pedidos</TD></TR></TABLE>>];
+  p34 [shape=none, margin=0, label=<<TABLE STYLE="ROUNDED" BORDER="2" CELLBORDER="0" CELLPADDING="6" BGCOLOR="#fff4cc" COLOR="#b08900"><TR><TD><B>3.4</B></TD></TR><TR><TD>Cancelar<BR/>pedido</TD></TR></TABLE>>];
+  p35 [shape=none, margin=0, label=<<TABLE STYLE="ROUNDED" BORDER="2" CELLBORDER="0" CELLPADDING="6" BGCOLOR="#fff4cc" COLOR="#b08900"><TR><TD><B>3.5</B></TD></TR><TR><TD>Entregar<BR/>URL de pago</TD></TR></TABLE>>];
+  d3 [shape=none, margin=0, label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="5" BGCOLOR="#e3f2e1" COLOR="#3c7a35"><TR><TD><B>D3</B></TD><TD SIDES="TB">Menús del día</TD></TR></TABLE>>];
+  d4 [shape=none, margin=0, label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="5" BGCOLOR="#e3f2e1" COLOR="#3c7a35"><TR><TD><B>D4</B></TD><TD SIDES="TB">Pedidos</TD></TR></TABLE>>];
+  d5 [shape=none, margin=0, label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="5" BGCOLOR="#e3f2e1" COLOR="#3c7a35"><TR><TD><B>D5</B></TD><TD SIDES="TB">Pagos</TD></TR></TABLE>>];
+
+  p1 -> p31 [label="identidad y rol"];
+  p1 -> p33 [label="identidad y rol"];
+  p1 -> p34 [label="identidad y rol"];
+  p1 -> p35 [label="identidad y rol"];
+
+  cliente -> p31 [label="datos del pedido\l(menú, cantidad)\l"];
+  d3 -> p31 [label="cupo, hora de corte\ly precio\l"];
+  d4 -> p31 [label="viandas reservadas"];
+  p31 -> p32 [label="pedido aceptado"];
+  p31 -> p5 [label="pedidos rechazados\l(cupo u horario)\l"];
+  p32 -> d4 [label="pedido\l(PENDIENTE_PAGO)\l"];
+  p32 -> d5 [label="pago pendiente\l(monto y vencimiento)\l"];
+  p32 -> p4 [label="datos de la orden de pago"];
+  p4 -> p32 [label="URL de pago"];
+  p32 -> cliente [label="URL de pago"];
+
+  d4 -> p33 [label="pedidos"];
+  d3 -> p33 [label="menú de cada pedido"];
+  d5 -> p33 [label="estado del pago"];
+  p33 -> cliente  [label="mis pedidos con\lestado de pago\l"];
+  p33 -> cocinero [label="pedidos de los\lclientes por día\l"];
+
+  cliente -> p34 [label="pedido a cancelar"];
+  d4 -> p34 [label="pedidos"];
+  d3 -> p34 [label="cupo, hora de corte\ly precio\l"];
+  d5 -> p34 [label="estado del pago"];
+  p34 -> d4 [label="pedido (CANCELADO)"];
+  p34 -> d5 [label="pago pendiente\l(CANCELADO o DEVUELTO)\l"];
+  p34 -> p4 [label="pago a devolver"];
+  p34 -> p5 [label="pedidos rechazados\l(fuera de horario)\l"];
+
+  cliente -> p35 [label="pedido a pagar"];
+  d4 -> p35 [label="pedidos"];
+  d5 -> p35 [label="URL de pago"];
+  p35 -> cliente [label="URL de pago"];
+}

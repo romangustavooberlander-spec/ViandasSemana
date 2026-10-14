@@ -1,0 +1,42 @@
+@startuml ambientes
+!include estilo.iuml
+title Ambiente local de desarrollo vs. ambiente productivo
+left to right direction
+skinparam database {
+  BackgroundColor #e3f2e1
+  BorderColor #3c7a35
+}
+rectangle "LOCAL (computadora del integrante)" as Local {
+  component "Vite dev server\nhttp://localhost:5173" as LFront
+  component "API (tsx watch)\nhttp://localhost:3000" as LApi
+  file "backend/.env y frontend/.env\n(no se suben: .gitignore)" as LEnv
+  database "Docker: db (viandas_dev)\nlocalhost:5432" as LDb
+  database "Docker: db_test (viandas_test)\nlocalhost:5433\nsólo para tests" as LTest
+  component "Logs en la terminal" as LLogs
+}
+rectangle "PRODUCCIÓN (sin depender de ninguna computadora)" as Prod {
+  component "Render Static Site\nhttps://viandassemana-web.onrender.com" as PFront
+  component "Render Web Service\nhttps://viandassemana.onrender.com" as PApi
+  file "Variables de entorno de Render\n(secretos de la plataforma)" as PEnv
+  database "Neon PostgreSQL\n(remota, compartida)" as PDb
+  component "Render Logs" as PLogs
+}
+LFront --> LApi : HTTP (sin cifrar, misma máquina)
+LApi --> LDb : TCP 5432
+LEnv ..> LApi
+LApi ..> LLogs
+PFront --> PApi : HTTPS 443 por Internet
+PApi --> PDb : TLS 5432 por Internet
+PEnv ..> PApi
+PApi ..> PLogs
+note bottom of Local
+  Mercado Pago sin API_URL: no hay webhook,
+  el pago se confirma cuando el cliente vuelve.
+  Credenciales de PRUEBA de Mercado Pago.
+end note
+note bottom of Prod
+  Mercado Pago avisa por webhook a
+  API_URL/api/pagos/notificacion.
+  El plan gratuito duerme la API tras 15 min sin uso.
+end note
+@enduml
