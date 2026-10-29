@@ -64,16 +64,21 @@ npm run dev                 # http://localhost:5173
 
 ```bash
 cd backend
-DATABASE_URL=postgresql://viandas:viandas@localhost:5433/viandas_test npx prisma migrate deploy  # sólo la primera vez
 npm test
 ```
 
 Un único comando ejecuta los tests **unitarios** (`tests/unit`, reglas de negocio sin base de datos)
 y de **integración** (`tests/integration`, petición HTTP completa) y genera el informe de cobertura
 en `backend/coverage/index.html`. Si la cobertura de líneas baja del **65 %**, el comando falla.
+Antes de empezar crea la base de pruebas si no existe y le aplica las migraciones (`tests/prepararBase.ts`).
 
-Los tests de integración usan una base de **pruebas** separada (`db_test`, puerto 5433, fijada en
-`vitest.config.ts`); nunca la base de desarrollo ni la productiva.
+Los tests de integración usan una base de **pruebas** separada, nunca la de desarrollo ni la productiva:
+por defecto `db_test` del docker compose (puerto 5433). Sin Docker, alcanza con agregar en `backend/.env`
+una base `..._test` en el PostgreSQL local (el nombre tiene que terminar en `_test`, si no los tests no arrancan):
+
+```
+TEST_DATABASE_URL=postgresql://USUARIO:CLAVE@localhost:5432/viandas_test
+```
 
 ## Autenticación
 
