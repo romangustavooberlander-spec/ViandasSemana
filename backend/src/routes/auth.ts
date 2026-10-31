@@ -25,12 +25,13 @@ const esquemaRegistro = z.object({
   password: esquemaPassword,
 });
 
+// En el login no se exige formato de email: así el administrador inicial entra con "admin".
 const esquemaLogin = z.object({
-  email: esquemaEmail,
+  email: z.string().trim().toLowerCase().min(1, 'Ingresá tu email o usuario'),
   password: z.string().min(1),
 });
 
-// Todo usuario nuevo es CLIENTE. El rol COCINERO se asigna desde la base.
+// Todo usuario nuevo es CLIENTE. El ADMINISTRADOR le asigna el rol COCINERO desde la página.
 authRouter.post('/registro', async (req, res, next) => {
   try {
     const datos = esquemaRegistro.parse(req.body);

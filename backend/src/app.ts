@@ -9,6 +9,7 @@ import { authRouter } from './routes/auth';
 import { menusRouter } from './routes/menus';
 import { pedidosRouter } from './routes/pedidos';
 import { pagosRouter } from './routes/pagos';
+import { usuariosRouter } from './routes/usuarios';
 import { manejadorErrores, noEncontrado } from './middleware/errorHandler';
 
 export interface OpcionesApp {
@@ -35,6 +36,7 @@ export function crearApp({ corsOrigins }: OpcionesApp) {
   app.use('/api/menus', menusRouter);
   app.use('/api/pedidos', pedidosRouter);
   app.use('/api/pagos', pagosRouter);
+  app.use('/api/usuarios', usuariosRouter);
 
   app.use(noEncontrado);
   app.use(manejadorErrores);

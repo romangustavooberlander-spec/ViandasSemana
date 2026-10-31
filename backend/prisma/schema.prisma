@@ -12,13 +12,13 @@ datasource db {
 
 model Rol {
   id       Int       @id @default(autoincrement())
-  nombre   String    @unique // "COCINERO" | "CLIENTE"
+  nombre   String    @unique // "ADMINISTRADOR" | "COCINERO" | "CLIENTE"
   usuarios Usuario[]
 }
 
 model Usuario {
   id           Int      @id @default(autoincrement())
-  email        String   @unique
+  email        String   @unique // el administrador inicial usa "admin" en vez de un email
   nombre       String
   passwordHash String
   rolId        Int

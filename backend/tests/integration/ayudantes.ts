@@ -1,5 +1,5 @@
 // Utilidades compartidas por los tests de integración. Usan la base de PRUEBAS.
-// Los roles los crea la migración inicial, por eso no se borran.
+// Los roles y la cuenta "admin" los crean las migraciones, por eso no se borran.
 import jwt from 'jsonwebtoken';
 import { vi } from 'vitest';
 import { prisma } from '../../src/lib/prisma';
@@ -10,11 +10,11 @@ export async function limpiarBase() {
   await prisma.pedido.deleteMany();
   await prisma.menuDia.deleteMany();
   await prisma.codigoRecuperacion.deleteMany();
-  await prisma.usuario.deleteMany();
+  await prisma.usuario.deleteMany({ where: { email: { not: 'admin' } } });
 }
 
 // Crea un usuario con el rol pedido y devuelve el encabezado Authorization listo para usar.
-export async function crearUsuario(rol: 'COCINERO' | 'CLIENTE', email = `${rol.toLowerCase()}@test.com`) {
+export async function crearUsuario(rol: 'ADMINISTRADOR' | 'COCINERO' | 'CLIENTE', email = `${rol.toLowerCase()}@test.com`) {
   const usuario = await prisma.usuario.create({
     data: { email, nombre: rol, passwordHash: 'x', rol: { connect: { nombre: rol } } },
   });

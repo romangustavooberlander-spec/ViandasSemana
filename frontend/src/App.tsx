@@ -3,6 +3,7 @@ import { cuandoVenzaLaSesion, enviar, ErrorApi, guardarSesion, leerSesion, pedir
 import Acceso from './pantallas/Acceso';
 import Menus from './pantallas/Menus';
 import Pedidos from './pantallas/Pedidos';
+import Usuarios from './pantallas/Usuarios';
 
 export type Avisar = (texto: string, tipo?: 'ok' | 'error') => void;
 type Aviso = { texto: string; tipo: 'ok' | 'error' } | null;
@@ -70,7 +71,8 @@ export default function App() {
     setSesion(null);
   }
 
-  const esCocinero = sesion?.usuario.rol === 'COCINERO';
+  const rol = sesion?.usuario.rol;
+  const esCocinero = rol === 'COCINERO';
 
   return (
     <>
@@ -85,7 +87,7 @@ export default function App() {
           <div className="usuario">
             <span>
               {sesion.usuario.nombre}
-              <small>{esCocinero ? 'Cocina' : 'Cliente'}</small>
+              <small>{rol === 'ADMINISTRADOR' ? 'Administración' : esCocinero ? 'Cocina' : 'Cliente'}</small>
             </span>
             <button className="boton secundario" onClick={salir}>
               Salir
@@ -94,7 +96,11 @@ export default function App() {
         )}
       </header>
 
-      {sesion ? (
+      {rol === 'ADMINISTRADOR' ? (
+        <main className="contenido">
+          <Usuarios avisar={avisar} />
+        </main>
+      ) : sesion ? (
         <main className="contenido">
           <nav className="pestanas">
             <button className={pestana === 'menus' ? 'activa' : ''} onClick={() => setPestana('menus')}>

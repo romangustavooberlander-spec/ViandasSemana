@@ -89,9 +89,18 @@ Los tests de integración usan una base de **pruebas** separada (`db_test`, puer
 
 El token se manda en el encabezado `Authorization: Bearer <token>`. Sin token, con token inválido,
 vencido o cerrado con logout la API responde **401**; con un rol sin permiso, **403**.
-Los roles (`COCINERO`, `CLIENTE`) están en la tabla `Rol` y los carga la migración inicial.
-Todo registro crea un CLIENTE; para que un usuario sea cocinero se le cambia el rol en la base
-(por ejemplo con `npx prisma studio`).
+Los roles (`ADMINISTRADOR`, `COCINERO`, `CLIENTE`) están en la tabla `Rol` y los cargan las migraciones.
+Todo registro crea un CLIENTE. El **administrador** entra a la página y, en la pantalla "Usuarios",
+hace cocinero a un usuario (o le quita ese rol) sin tocar la base.
+
+La migración `rol_administrador` crea la cuenta de administrador: usuario **`admin`**, contraseña
+**`admin`** (en el login se escribe `admin` en el campo "Email o usuario"). **En producción hay que
+cambiar esa contraseña.**
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/api/usuarios` | Lista los usuarios con su rol (sólo ADMINISTRADOR) |
+| PATCH | `/api/usuarios/:id/rol` | Con `{ "rol": "COCINERO" }` o `{ "rol": "CLIENTE" }` cambia el rol (sólo ADMINISTRADOR; el rol de un administrador no se cambia) |
 
 Las contraseñas nunca se guardan en texto plano: se guardan con **bcrypt** (registro y recuperación).
 
@@ -210,7 +219,7 @@ Para probar sin mandar correos reales sirve una casilla de prueba como [Mailtrap
 
 ### Probar la reserva y el pago
 
-1. Configurar `MP_ACCESS_TOKEN` (vendedor de prueba) y hacer cocinero a un usuario (`npx prisma studio`).
+1. Configurar `MP_ACCESS_TOKEN` (vendedor de prueba) y hacer cocinero a un usuario (ingresando como `admin` / `admin`, pantalla "Usuarios").
 2. El cocinero crea un menú con precio. Un cliente reserva → lo lleva a Mercado Pago por el total.
 3. Pagar **con el comprador de prueba**, con una [tarjeta de prueba](https://www.mercadopago.com.ar/developers/es/docs/checkout-pro/additional-content/your-integrations/test/cards).
    El nombre del titular decide el resultado: `APRO` aprobado, `OTHE` rechazado, `CONT` pendiente.
