@@ -10,6 +10,10 @@ const transporte = env.smtp.host
       port: env.smtp.port,
       secure: env.smtp.port === 465, // 465 usa TLS directo; 587 usa STARTTLS
       auth: env.smtp.usuario ? { user: env.smtp.usuario, pass: env.smtp.password } : undefined,
+      // Si el servidor de correo no responde, cortar rápido en vez de colgar la función.
+      connectionTimeout: 10_000,
+      greetingTimeout: 10_000,
+      socketTimeout: 15_000,
     })
   : null;
 

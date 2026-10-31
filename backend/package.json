@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "prisma generate && tsc -p tsconfig.build.json",
+    "vercel-build": "prisma generate && prisma migrate deploy && tsc -p tsconfig.build.json",
+    "postinstall": "prisma generate",
     "start": "node dist/server.js",
     "test": "vitest run --coverage"
   },
