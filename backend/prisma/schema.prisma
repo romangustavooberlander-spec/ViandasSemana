@@ -51,6 +51,7 @@ model MenuDia {
   cupoMaximo  Int
   horaCorte   String // formato "HH:mm", hora de Argentina
   precio      Int // precio de una vianda, en pesos
+  imagen      String? // foto del plato como data URL (data:image/...;base64,...); null si no tiene
   pedidos     Pedido[]
   creadoEn    DateTime @default(now())
 }

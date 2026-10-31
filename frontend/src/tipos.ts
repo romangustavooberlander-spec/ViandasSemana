@@ -6,6 +6,7 @@ export interface Menu {
   cupoMaximo: number;
   horaCorte: string;
   precio: number; // por vianda, en pesos
+  imagen?: string | null; // foto del plato (data URL); la lista de pedidos no la trae
   reservadas: number; // pagadas o esperando el pago
   disponibles: number;
   abierto: boolean;

@@ -28,7 +28,7 @@ export function crearApp({ corsOrigins }: OpcionesApp) {
       allowedHeaders: ['Content-Type', 'Authorization'],
     }),
   );
-  app.use(express.json({ limit: '100kb' }));
+  app.use(express.json({ limit: '400kb' })); // alcanza para la foto de un menú
   app.use(pinoHttp({ logger }));
 
   app.use('/api/health', healthRouter);

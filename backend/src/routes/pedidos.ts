@@ -34,9 +34,10 @@ pedidosRouter.get('/', async (req, res) => {
   });
   const ahora = new Date();
   res.json(
-    pedidos.map((p) => ({
+    pedidos.map(({ menu: { imagen: _imagen, ...menu }, ...p }) => ({
       ...p,
-      cancelable: p.estado !== 'CANCELADO' && !yaPasoElCorte(p.menu.fecha, p.menu.horaCorte, ahora),
+      menu, // sin la foto: la lista de pedidos no la muestra y pesaría mucho
+      cancelable: p.estado !== 'CANCELADO' && !yaPasoElCorte(menu.fecha, menu.horaCorte, ahora),
       pagable: p.estado === 'PENDIENTE_PAGO',
     })),
   );

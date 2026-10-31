@@ -115,6 +115,8 @@ input:focus, textarea:focus { border-color: var(--carbon); }
 .menu h3, .dia h3 { font-size: 1.3rem; }
 .menu h3::first-letter, .dia h3::first-letter { text-transform: uppercase; }
 .menu .descripcion { margin: 0; font-size: 1.1rem; font-weight: 600; line-height: 1.35; flex: 1; }
+.foto { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 14px; display: block; }
+.foto-elegida { display: flex; flex-direction: column; gap: 0.5rem; max-width: 280px; }
 .menu.cerrado { opacity: 0.6; border-top-color: var(--borde); }
 .detalle { margin: 0; color: var(--suave); font-size: 0.9rem; }
 .cupo { height: 10px; border-radius: 999px; background: #efece7; overflow: hidden; }
