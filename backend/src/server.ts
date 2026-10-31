@@ -1,9 +1,8 @@
-// Punto de entrada: lee la configuración y levanta el servidor HTTP.
+// Punto de entrada en local (npm run dev / npm start): levanta el servidor HTTP.
+// En Vercel no se usa: la plataforma toma el export por defecto de app.ts.
 import { env } from './config/env';
-import { crearApp } from './app';
+import app from './app';
 import { logger } from './lib/logger';
-
-const app = crearApp({ corsOrigins: env.corsOrigins });
 
 app.listen(env.port, () => {
   logger.info({ puerto: env.port, entorno: env.nodeEnv }, 'API de ViandasSemana escuchando');

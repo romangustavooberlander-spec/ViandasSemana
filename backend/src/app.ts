@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import { pinoHttp } from 'pino-http';
+import { env } from './config/env';
 import { logger } from './lib/logger';
 import { healthRouter } from './routes/health';
 import { authRouter } from './routes/auth';
@@ -40,3 +41,7 @@ export function crearApp({ corsOrigins }: OpcionesApp) {
 
   return app;
 }
+
+// Vercel ejecuta la API como una función: toma este export por defecto (no usa app.listen).
+// En local y en los tests se sigue usando crearApp / server.ts como siempre.
+export default crearApp({ corsOrigins: env.corsOrigins });
