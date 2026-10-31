@@ -8,12 +8,21 @@ import { yaPasoElCorte } from '../domain/reglasPedido';
 
 export const menusRouter = Router();
 
+export const MAX_IMAGEN = 300_000; // caracteres del data URL (unos 220 KB de imagen)
+
 const esquemaMenu = z.object({
   fecha: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato AAAA-MM-DD'),
   descripcion: z.string().trim().min(1),
   cupoMaximo: z.number().int().min(1),
   precio: z.number().int('El precio va en pesos, sin centavos').min(1, 'El precio tiene que ser mayor a cero'),
   horaCorte: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Formato HH:mm'),
+  // Foto opcional del plato. Se guarda en la base (en Vercel no hay disco donde dejar archivos);
+  // el frontend la achica antes de mandarla. null la quita; si no viene, al editar se conserva.
+  imagen: z
+    .string()
+    .max(MAX_IMAGEN, 'La imagen es muy pesada')
+    .regex(/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/]+=*$/, 'La imagen tiene que ser JPG, PNG o WebP')
+    .nullish(),
 });
 
 const esquemaId = z.coerce.number().int().positive();

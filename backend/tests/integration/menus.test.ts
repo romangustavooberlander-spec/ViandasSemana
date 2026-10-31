@@ -3,6 +3,7 @@ import request from 'supertest';
 import { crearApp } from '../../src/app';
 import { prisma } from '../../src/lib/prisma';
 import { crearUsuario, limpiarBase } from './ayudantes';
+import { MAX_IMAGEN } from '../../src/routes/menus';
 
 const app = crearApp({ corsOrigins: [] });
 const menuValido = { fecha: '2099-01-10', descripcion: 'Milanesa con puré', cupoMaximo: 20, horaCorte: '10:00', precio: 3500 };
@@ -43,6 +44,22 @@ describe('API de menús', () => {
       .send({ ...menuValido, cupoMaximo: 5 });
     expect(res.status).toBe(200);
     expect(res.body.cupoMaximo).toBe(5);
+  });
+
+  it('guarda la foto del plato, la conserva al editar sin mandarla y la quita con null', async () => {
+    const imagen = 'data:image/jpeg;base64,/9j/4AAQSkZJRg==';
+    const { body: creado } = await request(app).post('/api/menus').set('Authorization', cocinero).send({ ...menuValido, imagen });
+    expect(creado.imagen).toBe(imagen);
+    const editado = await request(app).put(`/api/menus/${creado.id}`).set('Authorization', cocinero).send(menuValido);
+    expect(editado.body.imagen).toBe(imagen);
+    const sinFoto = await request(app).put(`/api/menus/${creado.id}`).set('Authorization', cocinero).send({ ...menuValido, imagen: null });
+    expect(sinFoto.body.imagen).toBeNull();
+  });
+
+  it('rechaza una imagen que no es JPG/PNG/WebP o que es muy pesada (400)', async () => {
+    const envio = (imagen: string) => request(app).post('/api/menus').set('Authorization', cocinero).send({ ...menuValido, imagen });
+    expect((await envio('data:text/html;base64,PGh0bWw+')).status).toBe(400);
+    expect((await envio(`data:image/png;base64,${'A'.repeat(MAX_IMAGEN)}`)).status).toBe(400);
   });
 
   it('DELETE elimina un menú', async () => {

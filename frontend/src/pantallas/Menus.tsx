@@ -96,6 +96,7 @@ export default function Menus({ esCocinero, avisar }: Props) {
                 {!menu.abierto ? 'Cerrado' : menu.disponibles ? `Quedan ${menu.disponibles}` : 'Agotado'}
               </span>
             </header>
+            {menu.imagen && <img className="foto" src={menu.imagen} alt={menu.descripcion} />}
             <p className="descripcion">{menu.descripcion}</p>
             <p className="precio">{menu.precio ? `${formatearPrecio(menu.precio)} por vianda` : 'Sin precio: todavía no se puede reservar'}</p>
             <div className="cupo" title={`${menu.reservadas} de ${menu.cupoMaximo} reservadas`}>
@@ -136,11 +137,40 @@ interface PropsFormulario {
   alCancelar: () => void;
 }
 
+// Achica la foto a 800 px de lado como máximo y la pasa a JPEG, para que viaje y se guarde liviana.
+function achicarImagen(archivo: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const escala = Math.min(1, 800 / Math.max(img.width, img.height));
+      const lienzo = document.createElement('canvas');
+      lienzo.width = Math.round(img.width * escala);
+      lienzo.height = Math.round(img.height * escala);
+      lienzo.getContext('2d')!.drawImage(img, 0, 0, lienzo.width, lienzo.height);
+      URL.revokeObjectURL(img.src);
+      resolve(lienzo.toDataURL('image/jpeg', 0.75));
+    };
+    img.onerror = () => reject(new Error('No se pudo leer la imagen'));
+    img.src = URL.createObjectURL(archivo);
+  });
+}
+
 function FormularioMenu({ menu, alGuardar, alCancelar }: PropsFormulario) {
+  const [imagen, setImagen] = useState(menu?.imagen ?? null);
+
   function enviarFormulario(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const datos = Object.fromEntries(new FormData(e.currentTarget));
-    alGuardar({ ...datos, cupoMaximo: Number(datos.cupoMaximo), precio: Number(datos.precio) });
+    alGuardar({ ...datos, cupoMaximo: Number(datos.cupoMaximo), precio: Number(datos.precio), imagen });
+  }
+
+  async function elegirImagen(archivo: File | undefined) {
+    if (!archivo) return;
+    try {
+      setImagen(await achicarImagen(archivo));
+    } catch (err) {
+      alert((err as Error).message);
+    }
   }
 
   return (
@@ -168,6 +198,19 @@ function FormularioMenu({ menu, alGuardar, alCancelar }: PropsFormulario) {
         Plato
         <textarea name="descripcion" required rows={2} defaultValue={menu?.descripcion} placeholder="Ej.: Milanesa con puré y ensalada" />
       </label>
+      <label>
+        Foto del plato (opcional)
+        {/* Sin "name": la foto va ya achicada desde el estado, no como archivo del formulario. */}
+        <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => elegirImagen(e.target.files?.[0])} />
+      </label>
+      {imagen && (
+        <div className="foto-elegida">
+          <img className="foto" src={imagen} alt="Foto del plato" />
+          <button type="button" className="boton secundario" onClick={() => setImagen(null)}>
+            Quitar foto
+          </button>
+        </div>
+      )}
       <div className="acciones">
         <button type="button" className="boton secundario" onClick={alCancelar}>
           Cancelar
