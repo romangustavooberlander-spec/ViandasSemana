@@ -3,7 +3,7 @@
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 const CLAVE_SESION = 'viandas.sesion';
 
-export type Rol = 'COCINERO' | 'CLIENTE';
+export type Rol = 'ADMINISTRADOR' | 'COCINERO' | 'CLIENTE';
 export interface Sesion {
   token: string;
   usuario: { id: number; nombre: string; rol: Rol };

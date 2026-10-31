@@ -19,7 +19,7 @@ async function registrarYLoguear() {
 
 beforeEach(async () => {
   await prisma.pedido.deleteMany();
-  await prisma.usuario.deleteMany();
+  await prisma.usuario.deleteMany({ where: { email: { not: 'admin' } } }); // la cuenta admin la crea una migración
 });
 
 afterAll(async () => {

@@ -54,8 +54,8 @@ export default function Acceso({ alIngresar, avisar }: Props) {
             </label>
           )}
           <label>
-            Email
-            <input name="email" type="email" required autoComplete="email" />
+            {modo === 'registro' ? 'Email' : 'Email o usuario'}
+            <input name="email" type={modo === 'registro' ? 'email' : 'text'} required autoComplete="username" />
           </label>
           <label>
             Contraseña
