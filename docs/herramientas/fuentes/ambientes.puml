@@ -15,11 +15,11 @@ rectangle "LOCAL (computadora del integrante)" as Local {
   component "Logs en la terminal" as LLogs
 }
 rectangle "PRODUCCIÓN (sin depender de ninguna computadora)" as Prod {
-  component "Render Static Site\nhttps://viandassemana-web.onrender.com" as PFront
-  component "Render Web Service\nhttps://viandassemana.onrender.com" as PApi
-  file "Variables de entorno de Render\n(secretos de la plataforma)" as PEnv
+  component "Vercel: frontend\nhttps://viandas-semana.vercel.app" as PFront
+  component "Vercel: API (función)\nhttps://viandas-semana-api.vercel.app" as PApi
+  file "Variables de entorno de Vercel\n(secretos de la plataforma)" as PEnv
   database "Neon PostgreSQL\n(remota, compartida)" as PDb
-  component "Render Logs" as PLogs
+  component "Logs de Vercel" as PLogs
 }
 LFront --> LApi : HTTP (sin cifrar, misma máquina)
 LApi --> LDb : TCP 5432
@@ -37,6 +37,6 @@ end note
 note bottom of Prod
   Mercado Pago avisa por webhook a
   API_URL/api/pagos/notificacion.
-  El plan gratuito duerme la API tras 15 min sin uso.
+  La API corre como función, sin disco propio.
 end note
 @enduml

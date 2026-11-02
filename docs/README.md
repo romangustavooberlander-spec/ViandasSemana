@@ -11,6 +11,10 @@ Cada diagrama está en su propio archivo.
 | [Diseño técnico](ViandasSemana-Diseno-Tecnico.docx) ([pdf](ViandasSemana-Diseno-Tecnico.pdf)) | Consigna, sección 4: DFD niveles 0, 1 y 2 con la tabla de consistencia, casos de uso, DER y diccionario de datos, arquitectura y despliegue, decisiones técnicas y declaración de uso de IA |
 | [Propuesta original](Propuesta-original.docx) ([pdf](Propuesta-original.pdf)) | Consigna, sección 2 |
 
+La propuesta original es el documento de la semana 1 y se conserva como se entregó. Después el proyecto cambió:
+la tecnología avanzada pasó de observabilidad sola a Mercado Pago más logs estructurados, se agregó el rol
+ADMINISTRADOR y el despliegue se mudó de Render a Vercel. Los documentos de diseño y módulos describen la versión actual.
+
 ## Módulos
 
 Cada módulo tiene una descripción, el diagrama de casos de uso, la plantilla de **cada** caso de uso y

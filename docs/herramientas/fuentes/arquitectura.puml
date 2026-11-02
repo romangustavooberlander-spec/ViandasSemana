@@ -20,14 +20,14 @@ actor "Cliente / Cocinero\n(navegador)" as Navegador
 
 cloud "Internet" as Internet
 
-node "Render — Static Site (CDN global)\nhttps://viandassemana-web.onrender.com" as RenderWeb {
+node "Vercel — proyecto viandas-semana\nhttps://viandas-semana.vercel.app" as VercelWeb {
   artifact "Frontend React + Vite\n(HTML, JS y CSS estáticos)\nVITE_API_URL fijada al construir" as Front
 }
 
-node "Render — Web Service Free (Virginia, US East)\nhttps://viandassemana.onrender.com" as RenderApi {
-  component "API Node 22 + Express 5\n/api/health · /api/auth · /api/menus\n/api/pedidos · /api/pagos" as Api
-  file "Variables de entorno (secretos)\nDATABASE_URL · JWT_SECRET · CORS_ORIGIN\nMP_ACCESS_TOKEN · SMTP_* · MAIL_FROM\nFRONTEND_URL · API_URL" as SecretosRender
-  component "Render Logs\n(logs JSON de pino)" as Logs
+node "Vercel — proyecto viandas-semana-api (función)\nhttps://viandas-semana-api.vercel.app" as VercelApi {
+  component "API Node 22 + Express 5\n/api/health · /api/auth · /api/menus\n/api/pedidos · /api/pagos · /api/usuarios" as Api
+  file "Variables de entorno (secretos)\nDATABASE_URL · JWT_SECRET · CORS_ORIGIN\nMP_ACCESS_TOKEN · SMTP_* · MAIL_FROM\nFRONTEND_URL · API_URL" as SecretosVercel
+  component "Logs de Vercel\n(logs JSON de pino)" as Logs
 }
 
 database "Neon PostgreSQL 16 (Free)\nAWS us-east-1\n6 tablas (ver DER)" as Neon
@@ -51,14 +51,14 @@ Api --> Neon : PostgreSQL 5432 sobre TLS\n(Prisma) · Internet
 Api --> MP : HTTPS 443 · REST\nBearer MP_ACCESS_TOKEN
 MP --> Api : HTTPS 443 · webhook\nPOST /api/pagos/notificacion
 Api --> Gmail : SMTP 465 (TLS)
-Api ..> Logs : stdout (interno de Render)
-SecretosRender ..> Api : process.env (interno)
+Api ..> Logs : stdout (interno de Vercel)
+SecretosVercel ..> Api : process.env (interno)
 
 ' --- Del push a producción ---
 Dev --> Repo : git push / merge (HTTPS)
 Repo --> Actions : evento push o pull_request a main
-Actions --> Actions : 1. backend: npm ci → prisma migrate deploy (base efímera)\n→ npm test (cobertura ≥ 65 %) → build\n2. frontend: npm ci → build\n3. desplegar: sólo si 1 y 2 pasan y es push a main
+Actions --> Actions : 1. backend: npm ci → prisma migrate deploy (base efímera)\n→ npm test (cobertura ≥ 65 %) → build\n2. frontend: npm ci → build\n3. desplegar: paso anterior a la mudanza, no publica en Vercel
 SecretosGH ..> Actions : secrets.*
-Actions --> RenderApi : HTTPS POST deploy hook
-Actions --> RenderWeb : HTTPS POST deploy hook
+Repo --> VercelApi : Vercel detecta el cambio en main
+Repo --> VercelWeb : Vercel detecta el cambio en main
 @enduml

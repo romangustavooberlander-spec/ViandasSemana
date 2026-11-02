@@ -45,6 +45,7 @@ entity "MenuDia" as MenuDia {
   * cupoMaximo : INTEGER
   * horaCorte : TEXT ("HH:mm")
   * precio : INTEGER (pesos)
+  imagen : TEXT NULL
   * creadoEn : TIMESTAMP(3) = now()
 }
 

@@ -112,7 +112,7 @@ const CU = [
     rendimiento: 'El sistema deberá realizar las acciones de los pasos 1 y 2 en un máximo de 200 milisegundos.',
     frecuencia: 'Se ejecuta antes de cada consulta de menús o pedidos y de cada reserva: unas 100 veces al día.',
     importancia: 'Vital.', urgencia: 'Inmediatamente.',
-    comentarios: 'No hay una tarea programada (cron): el vencimiento se aplica "a demanda", justo antes de leer o contar el cupo, que es el único momento en que importa. Así no hace falta un proceso extra en el servidor gratuito de Render, que se duerme.',
+    comentarios: 'No hay una tarea programada (cron): el vencimiento se aplica "a demanda", justo antes de leer o contar el cupo, que es el único momento en que importa. Así no hace falta un proceso extra en el servidor.',
   },
 ];
 

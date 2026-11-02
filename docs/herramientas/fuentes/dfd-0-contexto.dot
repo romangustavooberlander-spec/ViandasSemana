@@ -12,7 +12,7 @@ digraph dfd0 {
   cocinero [label="Cocinero"];
   mp       [label="Mercado Pago\n(API de pagos)"];
   correo   [label="Servicio de correo\n(SMTP de Gmail)"];
-  logs     [label="Plataforma de logs\n(Render Logs)"];
+  logs     [label="Plataforma de logs\n(logs de Vercel)"];
 
   // El sistema como un único proceso
   sistema [shape=none, margin=0, label=<

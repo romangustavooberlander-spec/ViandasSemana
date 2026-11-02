@@ -143,7 +143,7 @@ const contenido = [
     '`abierto = precio > 0 && !yaPasoElCorte(fecha, horaCorte, ahora)`.',
   ], 'n2'),
   h3('Hora de corte'),
-  p('`horaCorte` se guarda como texto "HH:mm" y se interpreta en **hora de Argentina (UTC-3, sin horario de verano)**. `instanteDeCorte` la convierte al instante UTC exacto; así el resultado es el mismo en la computadora de desarrollo y en el servidor de Render, que corre en UTC.'),
+  p('`horaCorte` se guarda como texto "HH:mm" y se interpreta en **hora de Argentina (UTC-3, sin horario de verano)**. `instanteDeCorte` la convierte al instante UTC exacto; así el resultado es el mismo en la computadora de desarrollo y en el servidor, que corre en UTC.'),
   h2('4. Esquema en la base de datos'),
   tabla(['Campo', 'Tipo', 'Notas'], [
     ['id', 'entero, PK', 'autoincremental'],
@@ -162,6 +162,7 @@ const contenido = [
     ['PUT /api/menus/:id', 'COCINERO', '200, 400, 401, 403, 404, 409'],
     ['DELETE /api/menus/:id', 'COCINERO', '204, 400, 401, 403, 404, 409'],
   ], [2.6, 2, 2.6]),
+  p('El cocinero puede agregar una **foto opcional del plato** al crear o editar un menú. El navegador la achica a 800 px y la pasa a JPEG; la API acepta JPG, PNG o WebP de hasta 300.000 caracteres y la guarda en `MenuDia.imagen`. La lista de pedidos no devuelve la foto, para no pesar de más.'),
   p('Ejemplo de respuesta de `GET /api/menus`:'),
   ...codigo([
     '[{ "id": 3, "fecha": "2026-10-15T00:00:00.000Z", "descripcion": "Milanesa con puré",',
@@ -193,7 +194,7 @@ const contenido = [
   ], [3, 4]),
   h2('9. Tests que lo cubren'),
   ...vinetas([
-    '**menus.test.ts (10):** crear (201), listar y ver uno, modificar, eliminar, no borrar con pedidos (409), no repetir fecha (409), datos inválidos (400), menú inexistente (404), sin token (401) y cliente que intenta crear (403).',
+    '**menus.test.ts (12):** guardar, conservar y quitar la foto del plato, rechazar una imagen inválida o muy pesada (400), crear (201), listar y ver uno, modificar, eliminar, no borrar con pedidos (409), no repetir fecha (409), datos inválidos (400), menú inexistente (404), sin token (401) y cliente que intenta crear (403).',
     '**reglasPedido.test.ts:** conversión de la hora de corte a UTC y casos un minuto antes y justo en el corte.',
   ]),
 ];
