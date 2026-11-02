@@ -52,6 +52,14 @@ describe('Reserva y pago con Mercado Pago', () => {
     expect(lista.body[0]).toMatchObject({ estado: 'CONFIRMADO', pagable: false, cancelable: true });
   });
 
+  it('confirma la reserva al ver "Mis pedidos" aunque el cliente no haya vuelto de Mercado Pago', async () => {
+    const { body: pedido } = await reservar();
+    await mp.pagar(pedido.id, 'rejected');
+    await mp.pagar(pedido.id, 'approved');
+    const lista = await request(app).get('/api/pedidos').set('Authorization', cliente);
+    expect(lista.body[0]).toMatchObject({ id: pedido.id, estado: 'CONFIRMADO', pagable: false });
+  });
+
   it('un pago rechazado no confirma la reserva y se puede reintentar', async () => {
     const { body: pedido } = await reservar();
     await notificar(await mp.pagar(pedido.id, 'rejected'));

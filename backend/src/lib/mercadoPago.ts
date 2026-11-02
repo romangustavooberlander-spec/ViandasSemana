@@ -77,6 +77,10 @@ export function crearPreferencia(d: DatosPreferencia) {
 /** Consulta el estado real de un pago. Es la única fuente de verdad: nunca se confía en el frontend. */
 export const obtenerPago = (id: string) => llamar<PagoMercadoPago>(`/v1/payments/${encodeURIComponent(id)}`);
 
+/** Busca los pagos hechos para un pedido (su external_reference). */
+export const buscarPagos = (pedidoId: number) =>
+  llamar<{ results: PagoMercadoPago[] }>(`/v1/payments/search?external_reference=${pedidoId}`);
+
 /** Devuelve el total de un pago aprobado. La clave de idempotencia evita devolverlo dos veces. */
 export const devolverPago = (id: string) =>
   llamar(`/v1/payments/${encodeURIComponent(id)}/refunds`, 'POST', {}, `devolucion-${id}`);
