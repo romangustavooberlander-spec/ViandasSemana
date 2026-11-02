@@ -1,0 +1,18 @@
+@startuml estados-pedido-pago
+!include estilo.iuml
+title Estados de un pedido (Pedido.estado) y de su pago (Pago.estado)
+state "PENDIENTE_PAGO\n(pago: PENDIENTE, RECHAZADO\no CANCELADO)" as PP
+state "CONFIRMADO\n(pago: APROBADO)" as C
+state "CANCELADO\n(pago: CANCELADO o DEVUELTO)" as X
+[*] --> PP : CU-09 Registrar pedido\n(ocupa cupo)
+PP --> PP : pago rechazado o pendiente\n(se puede reintentar)
+PP --> C : CU-15 Mercado Pago aprueba\ny el monto coincide
+PP --> X : CU-11 el cliente cancela\nantes del corte
+PP --> X : CU-17 vence el plazo para pagar\n(30 min o la hora de corte)
+PP --> X : no se pudo crear la orden\nen Mercado Pago
+C --> X : CU-11 el cliente cancela antes del corte\n→ CU-16 se devuelve el dinero
+C --> X : devolución o contracargo\navisado por Mercado Pago
+X --> X : llega un pago aprobado\n→ CU-16 se devuelve
+X --> [*]
+C --> [*] : pasa la hora de corte\n(se cocina)
+@enduml

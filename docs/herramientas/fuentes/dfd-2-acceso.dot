@@ -1,0 +1,54 @@
+// DFD Nivel 2 — proceso 1 Gestionar acceso (consigna 4.3)
+digraph dfd2_acceso {
+  graph [rankdir=TB, fontname="Helvetica", nodesep=0.5, ranksep=1.4, pad=0.3,
+         label="DFD Nivel 2 — Proceso 1: Gestionar acceso", labelloc=t, fontsize=18];
+  node  [fontname="Helvetica", fontsize=12];
+  edge  [fontname="Helvetica", fontsize=9.5, color="#444444", arrowsize=0.7];
+  node [shape=box, style="filled", fillcolor="#dbe7f3", color="#2f5d8a", penwidth=1.6, margin="0.2,0.12"];
+  cliente [label="Cliente"]; cocinero [label="Cocinero"]; correo [label="Servicio de correo"];
+  p11 [shape=none, margin=0, label=<<TABLE STYLE="ROUNDED" BORDER="2" CELLBORDER="0" CELLPADDING="6" BGCOLOR="#fff4cc" COLOR="#b08900"><TR><TD><B>1.1</B></TD></TR><TR><TD>Registrar<BR/>usuario</TD></TR></TABLE>>];
+  p12 [shape=none, margin=0, label=<<TABLE STYLE="ROUNDED" BORDER="2" CELLBORDER="0" CELLPADDING="6" BGCOLOR="#fff4cc" COLOR="#b08900"><TR><TD><B>1.2</B></TD></TR><TR><TD>Iniciar<BR/>sesión</TD></TR></TABLE>>];
+  p13 [shape=none, margin=0, label=<<TABLE STYLE="ROUNDED" BORDER="2" CELLBORDER="0" CELLPADDING="6" BGCOLOR="#fff4cc" COLOR="#b08900"><TR><TD><B>1.3</B></TD></TR><TR><TD>Validar<BR/>sesión</TD></TR></TABLE>>];
+  p14 [shape=none, margin=0, label=<<TABLE STYLE="ROUNDED" BORDER="2" CELLBORDER="0" CELLPADDING="6" BGCOLOR="#fff4cc" COLOR="#b08900"><TR><TD><B>1.4</B></TD></TR><TR><TD>Cerrar<BR/>sesión</TD></TR></TABLE>>];
+  p15 [shape=none, margin=0, label=<<TABLE STYLE="ROUNDED" BORDER="2" CELLBORDER="0" CELLPADDING="6" BGCOLOR="#fff4cc" COLOR="#b08900"><TR><TD><B>1.5</B></TD></TR><TR><TD>Emitir código<BR/>de recuperación</TD></TR></TABLE>>];
+  p16 [shape=none, margin=0, label=<<TABLE STYLE="ROUNDED" BORDER="2" CELLBORDER="0" CELLPADDING="6" BGCOLOR="#fff4cc" COLOR="#b08900"><TR><TD><B>1.6</B></TD></TR><TR><TD>Restablecer<BR/>contraseña</TD></TR></TABLE>>];
+  p2 [shape=none, margin=0, label=<<TABLE STYLE="ROUNDED" BORDER="2" CELLBORDER="0" CELLPADDING="6" BGCOLOR="#eeeeee" COLOR="#b08900"><TR><TD><B>2</B></TD></TR><TR><TD>Gestionar<BR/>menús</TD></TR></TABLE>>];
+  p3 [shape=none, margin=0, label=<<TABLE STYLE="ROUNDED" BORDER="2" CELLBORDER="0" CELLPADDING="6" BGCOLOR="#eeeeee" COLOR="#b08900"><TR><TD><B>3</B></TD></TR><TR><TD>Gestionar<BR/>pedidos</TD></TR></TABLE>>];
+  p5 [shape=none, margin=0, label=<<TABLE STYLE="ROUNDED" BORDER="2" CELLBORDER="0" CELLPADDING="6" BGCOLOR="#eeeeee" COLOR="#b08900"><TR><TD><B>5</B></TD></TR><TR><TD>Registrar<BR/>eventos</TD></TR></TABLE>>];
+  d1 [shape=none, margin=0, label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="5" BGCOLOR="#e3f2e1" COLOR="#3c7a35"><TR><TD><B>D1</B></TD><TD SIDES="TB">Usuarios y roles</TD></TR></TABLE>>];
+  d2 [shape=none, margin=0, label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="5" BGCOLOR="#e3f2e1" COLOR="#3c7a35"><TR><TD><B>D2</B></TD><TD SIDES="TB">Códigos de recuperación</TD></TR></TABLE>>];
+
+  cliente -> p11 [label="datos de registro"];
+  d1 -> p11 [label="usuario con ese email"];
+  p11 -> d1 [label="usuario nuevo (rol CLIENTE)\lhash de contraseña\l"];
+
+  cliente  -> p12 [label="credenciales"];
+  cocinero -> p12 [label="credenciales"];
+  d1 -> p12 [label="usuario y rol\lhash de contraseña\lversión de token\l"];
+  p12 -> cliente  [label="token de sesión"];
+  p12 -> cocinero [label="token de sesión"];
+  p12 -> p5 [label="eventos de acceso\l(login fallido)\l"];
+
+  cliente  -> p13 [label="token de sesión"];
+  cocinero -> p13 [label="token de sesión"];
+  d1 -> p13 [label="usuario y rol\lversión de token\l"];
+  p13 -> p2 [label="identidad y rol"];
+  p13 -> p3 [label="identidad y rol"];
+  p13 -> p14 [label="identidad"];
+  p14 -> d1 [label="versión de token + 1"];
+
+  cliente  -> p15 [label="datos de recuperación\l(email)\l"];
+  cocinero -> p15 [label="datos de recuperación\l(email)\l"];
+  d1 -> p15 [label="usuario y rol"];
+  d2 -> p15 [label="código vigente\l(último minuto)\l"];
+  p15 -> d2 [label="código (hash)"];
+  p15 -> correo [label="correo con código\lde recuperación\l"];
+  p15 -> p5 [label="eventos de acceso"];
+
+  cliente  -> p16 [label="datos de recuperación\l(email, código,\lcontraseña nueva)\l"];
+  cocinero -> p16 [label="datos de recuperación\l(email, código,\lcontraseña nueva)\l"];
+  d2 -> p16 [label="código vigente"];
+  p16 -> d2 [label="intentos y uso"];
+  p16 -> d1 [label="hash de contraseña\lversión de token + 1\l"];
+  p16 -> p5 [label="eventos de acceso"];
+}

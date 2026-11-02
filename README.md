@@ -27,7 +27,7 @@ los menús y hacen o cancelan sus pedidos respetando esas reglas.
 frontend/   React + Vite (TypeScript)        → se despliega como sitio estático
 backend/    Node + Express + TypeScript       → API REST (JSON)
             Prisma ORM + PostgreSQL remoto    → persistencia
-docs/       Documentación del TP (PDF + fuentes de diagramas)
+docs/       Documentación del TP (Word + PDF por módulo, diagramas .drawio)
 .github/workflows/ci-cd.yml                   → pipeline de CI/CD
 ```
 

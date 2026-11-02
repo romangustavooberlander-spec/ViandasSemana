@@ -1,0 +1,38 @@
+// DFD Nivel 0 (diagrama de contexto) — consigna 4.1
+// Notación Gane-Sarson. Cada flujo lleva el DATO que viaja, no la acción.
+digraph dfd0 {
+  graph [rankdir=TB, fontname="Helvetica", fontsize=12, nodesep=0.9, ranksep=2.2, pad=0.3,
+         label="ViandasSemana — DFD Nivel 0 (diagrama de contexto)", labelloc=t, fontsize=18];
+  node  [fontname="Helvetica", fontsize=12];
+  edge  [fontname="Helvetica", fontsize=10, color="#444444", arrowsize=0.8];
+
+  // Entidades externas
+  node [shape=box, style="filled", fillcolor="#dbe7f3", color="#2f5d8a", penwidth=1.6, margin="0.25,0.15"];
+  cliente  [label="Cliente"];
+  cocinero [label="Cocinero"];
+  mp       [label="Mercado Pago\n(API de pagos)"];
+  correo   [label="Servicio de correo\n(SMTP de Gmail)"];
+  logs     [label="Plataforma de logs\n(Render Logs)"];
+
+  // El sistema como un único proceso
+  sistema [shape=none, margin=0, label=<
+    <TABLE STYLE="ROUNDED" BORDER="2" CELLBORDER="0" CELLSPACING="0" CELLPADDING="10" BGCOLOR="#fff4cc" COLOR="#b08900">
+      <TR><TD><B>0</B></TD></TR>
+      <TR><TD><FONT POINT-SIZE="16"><B>Sistema ViandasSemana</B></FONT></TD></TR>
+    </TABLE>>];
+
+  {rank=same; cliente; cocinero;}
+  {rank=same; mp; correo; logs;}
+
+  cliente -> sistema [label="datos de registro\lcredenciales\ltoken de sesión\ldatos de recuperación\ldatos del pedido\lpedido a cancelar o pagar\lid de pago\l"];
+  sistema -> cliente [label="token de sesión\lmenús con precio y disponibilidad\lmis pedidos con estado de pago\lURL de pago\lresultado del pago\l"];
+
+  cocinero -> sistema [label="credenciales\ltoken de sesión\ldatos de recuperación\ldatos del menú\lmenú a eliminar\l"];
+  sistema -> cocinero [label="token de sesión\lmenús con viandas reservadas\lpedidos de los clientes por día\l"];
+
+  sistema -> mp [label="orden de pago\lid de pago a consultar\lpago a devolver\l"];
+  mp -> sistema [label="URL de pago\lnotificación de pago\lestado y monto del pago\l"];
+
+  sistema -> correo [label="correo con código\lde recuperación\l"];
+  sistema -> logs   [label="registro de eventos\l(JSON)\l"];
+}
