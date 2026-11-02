@@ -10,24 +10,25 @@ los menús y hacen o cancelan sus pedidos respetando esas reglas.
 
 | Componente | URL |
 |---|---|
-| Frontend | https://viandassemana-web.onrender.com |
-| Backend (API) | https://viandassemana.onrender.com/api/health |
+| Frontend | https://viandas-semana.vercel.app |
+| Backend (API) | https://viandas-semana-api.vercel.app/api/health |
 
 ## Arquitectura
 
 | Componente | Plataforma | Región |
 |---|---|---|
-| Frontend (sitio estático) | Render Static Site | CDN global |
-| Backend (API) | Render Web Service (Free) | Virginia (US East) |
+| Frontend (sitio estático) | Vercel, proyecto `viandas-semana` | CDN global |
+| Backend (API) | Vercel, proyecto `viandas-semana-api`, como función | Vercel |
 | Base de datos | Neon PostgreSQL (Free) | AWS US East 1 |
 
-> El backend del plan gratuito se suspende tras 15 min sin tráfico; la primera petición tarda ~1 min en despertarlo.
+> El proyecto empezó en Render y se mudó a Vercel, también el backend, para poder mandar los correos de recuperación con Gmail.
+> En Vercel la API no tiene disco propio: por eso las fotos de los platos se guardan en la base de datos.
 
 ```
 frontend/   React + Vite (TypeScript)        → se despliega como sitio estático
 backend/    Node + Express + TypeScript       → API REST (JSON)
             Prisma ORM + PostgreSQL remoto    → persistencia
-docs/       Documentación del TP (PDF + fuentes de diagramas)
+docs/       Documentación del TP (Word + PDF por módulo, diagramas .drawio)
 .github/workflows/ci-cd.yml                   → pipeline de CI/CD
 ```
 
@@ -144,13 +145,15 @@ Una reserva se paga **completa** con Checkout Pro y sólo queda confirmada cuand
 
 ## Frontend
 
+Una foto opcional del plato se carga al crear o editar un menú.
+
 | Pantalla | Cliente | Cocinero |
 |---|---|---|
 | Ingresar / crear cuenta | ✓ | ✓ |
 | Menú de la semana | ve cada día con su precio y las viandas que quedan; reserva y paga con Mercado Pago | crea, edita y borra menús (con precio); ve cuántas hay reservadas |
 | Pedidos | ve sus pedidos y el estado del pago; paga los pendientes y cancela antes del horario de corte | ve los pedidos pagados de cada día y el total a cocinar |
 
-El token se guarda en `localStorage` y viaja en el encabezado `Authorization`. Ante un **401** el
+El administrador tiene su propia pantalla, "Usuarios". El token se guarda en `localStorage` y viaja en el encabezado `Authorization`. Ante un **401** el
 frontend vuelve al inicio de sesión; ante un **403** avisa que falta permiso. Cada rol sólo ve los
 botones que puede usar. El frontend no calcula reglas de negocio: la API devuelve en cada menú si
 todavía acepta pedidos (`abierto`) y en cada pedido si se puede cancelar (`cancelable`) o pagar (`pagable`).
@@ -204,8 +207,8 @@ Para probar sin mandar correos reales sirve una casilla de prueba como [Mailtrap
 3. Ingresar con el vendedor de prueba, abrir la aplicación y copiar el **Access Token** de credenciales
    de producción de ese usuario de prueba en `MP_ACCESS_TOKEN`. (Con la cuenta real y su access token
    de producción se cobra de verdad.)
-4. En producción: `FRONTEND_URL=https://viandassemana-web.onrender.com` y
-   `API_URL=https://viandassemana.onrender.com`. La API le pasa a Mercado Pago
+4. En producción: `FRONTEND_URL=https://viandas-semana.vercel.app` y
+   `API_URL=https://viandas-semana-api.vercel.app`. La API le pasa a Mercado Pago
    `<API_URL>/api/pagos/notificacion` como URL de notificación en cada preferencia, así que no hace falta
    configurar el webhook en el panel.
 
@@ -230,9 +233,13 @@ Para probar sin mandar correos reales sirve una casilla de prueba como [Mailtrap
 
 ## Pipeline de CI/CD
 
-Cada push a `main` ejecuta: instalar → tests con umbral de cobertura → build → desplegar.
-Si cualquier paso falla, no se despliega. Secretos requeridos en GitHub
-(Settings → Secrets and variables → Actions): `DEPLOY_HOOK_BACKEND`, `DEPLOY_HOOK_FRONTEND`.
+Cada pull request y cada push a `main` ejecutan: instalar → tests con umbral de cobertura → build.
+La regla `proteger-main` exige pasar por pull request y que esos controles terminen bien: si fallan, no se puede
+hacer merge y el cambio no llega a producción. Cuando `main` cambia, Vercel publica solo el frontend y la API;
+en la API, `vercel-build` aplica las migraciones antes de compilar.
+
+El job `desplegar` es anterior a la mudanza: llama a `DEPLOY_HOOK_BACKEND` y `DEPLOY_HOOK_FRONTEND`
+(secretos de GitHub Actions), pero no es el que publica en Vercel.
 
 ## Flujo de trabajo
 
