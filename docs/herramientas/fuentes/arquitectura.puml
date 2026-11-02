@@ -1,0 +1,64 @@
+@startuml arquitectura
+!include estilo.iuml
+title ViandasSemana — Arquitectura y despliegue (producción)
+skinparam nodesep 40
+skinparam ranksep 60
+skinparam node {
+  BackgroundColor #f7f7f7
+  BorderColor #555555
+}
+skinparam cloud {
+  BackgroundColor #ffffff
+  BorderColor #999999
+}
+skinparam database {
+  BackgroundColor #e3f2e1
+  BorderColor #3c7a35
+}
+
+actor "Cliente / Cocinero\n(navegador)" as Navegador
+
+cloud "Internet" as Internet
+
+node "Render — Static Site (CDN global)\nhttps://viandassemana-web.onrender.com" as RenderWeb {
+  artifact "Frontend React + Vite\n(HTML, JS y CSS estáticos)\nVITE_API_URL fijada al construir" as Front
+}
+
+node "Render — Web Service Free (Virginia, US East)\nhttps://viandassemana.onrender.com" as RenderApi {
+  component "API Node 22 + Express 5\n/api/health · /api/auth · /api/menus\n/api/pedidos · /api/pagos" as Api
+  file "Variables de entorno (secretos)\nDATABASE_URL · JWT_SECRET · CORS_ORIGIN\nMP_ACCESS_TOKEN · SMTP_* · MAIL_FROM\nFRONTEND_URL · API_URL" as SecretosRender
+  component "Render Logs\n(logs JSON de pino)" as Logs
+}
+
+database "Neon PostgreSQL 16 (Free)\nAWS us-east-1\n6 tablas (ver DER)" as Neon
+
+node "Mercado Pago\napi.mercadopago.com" as MP
+node "Gmail SMTP\nsmtp.gmail.com" as Gmail
+
+node "GitHub" as GitHub {
+  folder "Repositorio\nromangustavooberlander-spec/ViandasSemana\n(main protegida)" as Repo
+  component "GitHub Actions\nci-cd.yml" as Actions
+  file "Secretos de Actions\nDEPLOY_HOOK_BACKEND\nDEPLOY_HOOK_FRONTEND" as SecretosGH
+}
+
+actor "Integrante\n(push / merge de PR)" as Dev
+
+' --- Uso del sistema (todo atraviesa Internet salvo lo marcado como interno) ---
+Navegador --> Internet
+Internet --> Front : HTTPS 443\nGET de la página
+Internet --> Api : HTTPS 443 · JSON\nAuthorization: Bearer <token>
+Api --> Neon : PostgreSQL 5432 sobre TLS\n(Prisma) · Internet
+Api --> MP : HTTPS 443 · REST\nBearer MP_ACCESS_TOKEN
+MP --> Api : HTTPS 443 · webhook\nPOST /api/pagos/notificacion
+Api --> Gmail : SMTP 465 (TLS)
+Api ..> Logs : stdout (interno de Render)
+SecretosRender ..> Api : process.env (interno)
+
+' --- Del push a producción ---
+Dev --> Repo : git push / merge (HTTPS)
+Repo --> Actions : evento push o pull_request a main
+Actions --> Actions : 1. backend: npm ci → prisma migrate deploy (base efímera)\n→ npm test (cobertura ≥ 65 %) → build\n2. frontend: npm ci → build\n3. desplegar: sólo si 1 y 2 pasan y es push a main
+SecretosGH ..> Actions : secrets.*
+Actions --> RenderApi : HTTPS POST deploy hook
+Actions --> RenderWeb : HTTPS POST deploy hook
+@enduml

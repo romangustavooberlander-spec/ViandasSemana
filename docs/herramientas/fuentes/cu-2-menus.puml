@@ -1,0 +1,24 @@
+@startuml cu-2-menus
+!include estilo.iuml
+title Módulo 2 — Menús: casos de uso
+left to right direction
+actor "Usuario" as Usuario
+actor "Cliente" as Cliente
+actor "Cocinero" as Cocinero
+Cliente -|> Usuario
+Cocinero -|> Usuario
+rectangle "Menús" {
+  usecase "CU-05 Consultar menús" as CU05
+  usecase "CU-06 Crear menú" as CU06
+  usecase "CU-07 Modificar menú" as CU07
+  usecase "CU-08 Eliminar menú" as CU08
+}
+rectangle "Pagos" {
+  usecase "CU-17 Vencer reservas impagas" as CU17
+}
+Usuario --> CU05
+Cocinero --> CU06
+Cocinero --> CU07
+Cocinero --> CU08
+CU05 ..> CU17 : <<include>>
+@enduml
