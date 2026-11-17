@@ -27,6 +27,12 @@ const esquemaMenu = z.object({
 
 const esquemaId = z.coerce.number().int().positive();
 
+const esquemaBusqueda = z.object({
+  texto: z.string().trim().optional(),
+  desde: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato AAAA-MM-DD').optional(),
+  hasta: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato AAAA-MM-DD').optional(),
+});
+
 // Devuelve el menú con cuántas viandas hay reservadas (pagadas o esperando el pago), cuántas quedan
 // y si todavía se aceptan pedidos. Así el frontend no tiene que calcular ninguna regla.
 async function buscarMenu(id: number) {
@@ -62,8 +68,18 @@ menusRouter.use(async (_req, _res, next) => {
   next();
 });
 
-menusRouter.get('/', async (_req, res) => {
-  const menus = await prisma.menuDia.findMany({ orderBy: { fecha: 'asc' } });
+menusRouter.get('/', async (req, res) => {
+  const { texto, desde, hasta } = esquemaBusqueda.parse(req.query); //aca reviso si los datos ingresados estan bien, si no, da error 400 datos invalidos
+  const menus = await prisma.menuDia.findMany({ //le pedimos a la bd que nos devuelva los menus que cumplan los filtros
+    where: {
+      descripcion: texto ? { contains: texto, mode: 'insensitive' } : undefined,
+      fecha: {
+        gte: desde ? new Date(`${desde}T00:00:00Z`) : undefined,
+        lte: hasta ? new Date(`${hasta}T00:00:00Z`) : undefined,
+      },
+    },
+    orderBy: { fecha: 'asc' },
+  });
   res.json(await Promise.all(menus.map(conTotales)));
 });
 
