@@ -13,12 +13,16 @@ export default function Menus({ esCocinero, avisar }: Props) {
   const [verAnteriores, setVerAnteriores] = useState(false);
   const [editando, setEditando] = useState<Menu | 'nuevo' | null>(null);
 
-  // El cocinero pide también los menús desactivados (?todas=true) para poder reactivarlos.
-  // El cliente recibe solo los activos: el filtro lo hace la API.
-  const cargar = () =>
-    pedirApi<Menu[]>(esCocinero ? '/api/menus?todas=true' : '/api/menus')
+  // Arma la consulta a la API con los filtros de búsqueda (si hay) y, si es cocinero,
+  // agrega todas=true para que también vea los menús desactivados y pueda reactivarlos.
+  const cargar = (filtros = '') => {
+    const parametros = new URLSearchParams(filtros);
+    if (esCocinero) parametros.set('todas', 'true');
+    const consulta = parametros.toString();
+    return pedirApi<Menu[]>(`/api/menus${consulta ? `?${consulta}` : ''}`)
       .then(setMenus)
       .catch((e: ErrorApi) => avisar(e.message, 'error'));
+  };
 
   useEffect(() => {
     cargar();
@@ -48,6 +52,13 @@ export default function Menus({ esCocinero, avisar }: Props) {
       avisar((err as ErrorApi).message, 'error');
       await cargar();
     }
+  }
+
+  function buscar(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const filtros = new URLSearchParams();
+    for (const [clave, valor] of new FormData(e.currentTarget)) if (valor) filtros.set(clave, String(valor));
+    cargar(`?${filtros}`);
   }
 
   function guardar(datos: Record<string, unknown>) {
@@ -88,6 +99,13 @@ export default function Menus({ esCocinero, avisar }: Props) {
           </button>
         )}
       </div>
+
+      <form className="encabezado" onSubmit={buscar}>
+        <input name="texto" placeholder="Buscar plato" />
+        <input name="desde" type="date" />
+        <input name="hasta" type="date" />
+        <button className="boton">Buscar</button>
+      </form>
 
       {editando && <FormularioMenu menu={editando === 'nuevo' ? null : editando} alGuardar={guardar} alCancelar={() => setEditando(null)} />}
 
