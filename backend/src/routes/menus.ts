@@ -27,6 +27,9 @@ const esquemaMenu = z.object({
 
 const esquemaId = z.coerce.number().int().positive();
 
+// Lo que se manda para activar o desactivar un menú.
+const esquemaEstado = z.object({ activo: z.boolean() });
+
 const esquemaBusqueda = z.object({
   texto: z.string().trim().optional(),
   desde: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato AAAA-MM-DD').optional(),
@@ -41,7 +44,7 @@ async function buscarMenu(id: number) {
   return conTotales(menu);
 }
 
-async function conTotales<T extends { id: number; cupoMaximo: number; precio: number; fecha: Date; horaCorte: string }>(menu: T) {
+async function conTotales<T extends { id: number; cupoMaximo: number; precio: number; fecha: Date; horaCorte: string; activo: boolean }>(menu: T) {
   const { _sum } = await prisma.pedido.aggregate({
     where: { menuId: menu.id, estado: OCUPAN_CUPO },
     _sum: { cantidad: true },
@@ -51,8 +54,9 @@ async function conTotales<T extends { id: number; cupoMaximo: number; precio: nu
     ...menu,
     reservadas,
     disponibles: Math.max(0, menu.cupoMaximo - reservadas),
-    // Se puede reservar si tiene precio (los menús anteriores a los pagos quedaron en 0) y no pasó el corte.
-    abierto: menu.precio > 0 && !yaPasoElCorte(menu.fecha, menu.horaCorte, new Date()),
+    // Se puede reservar si está activo, tiene precio (los menús anteriores a los pagos quedaron en 0)
+    // y no pasó el corte.
+    abierto: menu.activo && menu.precio > 0 && !yaPasoElCorte(menu.fecha, menu.horaCorte, new Date()),
   };
 }
 
@@ -68,10 +72,14 @@ menusRouter.use(async (_req, _res, next) => {
   next();
 });
 
+// Busca menús por texto y rango de fechas. Por defecto solo devuelve los activos;
+// con ?todas=true devuelve también los desactivados (para el cocinero).
 menusRouter.get('/', async (req, res) => {
   const { texto, desde, hasta } = esquemaBusqueda.parse(req.query); //aca reviso si los datos ingresados estan bien, si no, da error 400 datos invalidos
+  const todas = req.query.todas === 'true';
   const menus = await prisma.menuDia.findMany({ //le pedimos a la bd que nos devuelva los menus que cumplan los filtros
     where: {
+      activo: todas ? undefined : true,
       descripcion: texto ? { contains: texto, mode: 'insensitive' } : undefined,
       fecha: {
         gte: desde ? new Date(`${desde}T00:00:00Z`) : undefined,
@@ -103,6 +111,18 @@ menusRouter.put('/:id', exigirRol('COCINERO'), async (req, res) => {
   const otro = await prisma.menuDia.findUnique({ where: { fecha: datos.fecha } });
   if (otro && otro.id !== id) throw new HttpError(409, 'Ya existe un menú para esa fecha');
   const menu = await prisma.menuDia.update({ where: { id }, data: datos });
+  res.json(await conTotales(menu));
+});
+
+// Activar o desactivar un menú sin borrarlo (borrado lógico). Solo el cocinero.
+menusRouter.patch('/:id/estado', exigirRol('COCINERO'), async (req, res) => {
+  const id = esquemaId.parse(req.params.id);
+  const { activo } = esquemaEstado.parse(req.body);
+  await buscarMenu(id);
+  const menu = await prisma.menuDia.update({
+    where: { id },
+    data: { activo, fechaBaja: activo ? null : new Date() },
+  });
   res.json(await conTotales(menu));
 });
 

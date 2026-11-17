@@ -56,6 +56,7 @@ pedidosRouter.post('/', exigirRol('CLIENTE'), async (req, res) => {
     if (bloqueado.length === 0) throw new HttpError(404, 'Menú no encontrado');
     const menu = await tx.menuDia.findUniqueOrThrow({ where: { id: menuId } });
     if (menu.precio <= 0) throw new HttpError(409, 'Este menú todavía no tiene precio', 'SIN_PRECIO');
+        if (!menu.activo) throw new HttpError(409, 'Este menú no está disponible', 'MENU_INACTIVO');
     await vencerReservasImpagas(tx);
     const { _sum } = await tx.pedido.aggregate({
       where: { menuId, estado: OCUPAN_CUPO },

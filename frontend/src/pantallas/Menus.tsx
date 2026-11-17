@@ -13,10 +13,16 @@ export default function Menus({ esCocinero, avisar }: Props) {
   const [verAnteriores, setVerAnteriores] = useState(false);
   const [editando, setEditando] = useState<Menu | 'nuevo' | null>(null);
 
-  const cargar = (filtros = '') =>
-    pedirApi<Menu[]>(`/api/menus${filtros}`)
+  // Arma la consulta a la API con los filtros de búsqueda (si hay) y, si es cocinero,
+  // agrega todas=true para que también vea los menús desactivados y pueda reactivarlos.
+  const cargar = (filtros = '') => {
+    const parametros = new URLSearchParams(filtros);
+    if (esCocinero) parametros.set('todas', 'true');
+    const consulta = parametros.toString();
+    return pedirApi<Menu[]>(`/api/menus${consulta ? `?${consulta}` : ''}`)
       .then(setMenus)
       .catch((e: ErrorApi) => avisar(e.message, 'error'));
+  };
 
   useEffect(() => {
     cargar();
@@ -48,7 +54,7 @@ export default function Menus({ esCocinero, avisar }: Props) {
     }
   }
 
- function buscar(e: FormEvent<HTMLFormElement>) {
+  function buscar(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const filtros = new URLSearchParams();
     for (const [clave, valor] of new FormData(e.currentTarget)) if (valor) filtros.set(clave, String(valor));
@@ -67,6 +73,14 @@ export default function Menus({ esCocinero, avisar }: Props) {
     if (confirm(`¿Borrar el menú del ${formatearFecha(menu.fecha)}?`)) {
       hacer(() => enviar(`/api/menus/${menu.id}`, 'DELETE'), 'Menú borrado');
     }
+  }
+
+  // Activa o desactiva el menú sin borrarlo (borrado lógico): los datos y los pedidos se conservan.
+  function cambiarEstado(menu: Menu) {
+    hacer(
+      () => enviar(`/api/menus/${menu.id}/estado`, 'PATCH', { activo: !menu.activo }),
+      menu.activo ? 'Menú desactivado' : 'Menú activado',
+    );
   }
 
   if (!menus) return <p className="vacio">Cargando menús…</p>;
@@ -107,7 +121,7 @@ export default function Menus({ esCocinero, avisar }: Props) {
             <header>
               <h3>{formatearFecha(menu.fecha)}</h3>
               <span className={`etiqueta ${menu.abierto ? (menu.disponibles ? 'verde' : 'naranja') : 'gris'}`}>
-                {!menu.abierto ? 'Cerrado' : menu.disponibles ? `Quedan ${menu.disponibles}` : 'Agotado'}
+                {!menu.activo ? 'Desactivado' : !menu.abierto ? 'Cerrado' : menu.disponibles ? `Quedan ${menu.disponibles}` : 'Agotado'}
               </span>
             </header>
             {menu.imagen && <img className="foto" src={menu.imagen} alt={menu.descripcion} />}
@@ -124,6 +138,9 @@ export default function Menus({ esCocinero, avisar }: Props) {
               <div className="acciones">
                 <button className="boton secundario" onClick={() => setEditando(menu)}>
                   Editar
+                </button>
+                <button className="boton secundario" onClick={() => cambiarEstado(menu)}>
+                  {menu.activo ? 'Desactivar' : 'Activar'}
                 </button>
                 <button className="boton peligro" onClick={() => borrar(menu)}>
                   Borrar
