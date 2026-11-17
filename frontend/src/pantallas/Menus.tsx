@@ -13,8 +13,8 @@ export default function Menus({ esCocinero, avisar }: Props) {
   const [verAnteriores, setVerAnteriores] = useState(false);
   const [editando, setEditando] = useState<Menu | 'nuevo' | null>(null);
 
-  const cargar = () =>
-    pedirApi<Menu[]>('/api/menus')
+  const cargar = (filtros = '') =>
+    pedirApi<Menu[]>(`/api/menus${filtros}`)
       .then(setMenus)
       .catch((e: ErrorApi) => avisar(e.message, 'error'));
 
@@ -48,6 +48,13 @@ export default function Menus({ esCocinero, avisar }: Props) {
     }
   }
 
+ function buscar(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const filtros = new URLSearchParams();
+    for (const [clave, valor] of new FormData(e.currentTarget)) if (valor) filtros.set(clave, String(valor));
+    cargar(`?${filtros}`);
+  }
+
   function guardar(datos: Record<string, unknown>) {
     const esNuevo = editando === 'nuevo';
     hacer(
@@ -78,6 +85,13 @@ export default function Menus({ esCocinero, avisar }: Props) {
           </button>
         )}
       </div>
+
+      <form className="encabezado" onSubmit={buscar}>
+        <input name="texto" placeholder="Buscar plato" />
+        <input name="desde" type="date" />
+        <input name="hasta" type="date" />
+        <button className="boton">Buscar</button>
+      </form>
 
       {editando && <FormularioMenu menu={editando === 'nuevo' ? null : editando} alGuardar={guardar} alCancelar={() => setEditando(null)} />}
 
