@@ -10,6 +10,8 @@ export interface Menu {
   reservadas: number; // pagadas o esperando el pago
   disponibles: number;
   abierto: boolean;
+  activo: boolean; // false = desactivado por el cocinero (no se muestra a los clientes ni acepta pedidos)
+  fechaBaja?: string | null; // cuándo se desactivó
 }
 
 export interface Pedido {

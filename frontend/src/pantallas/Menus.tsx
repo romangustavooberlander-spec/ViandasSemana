@@ -13,8 +13,10 @@ export default function Menus({ esCocinero, avisar }: Props) {
   const [verAnteriores, setVerAnteriores] = useState(false);
   const [editando, setEditando] = useState<Menu | 'nuevo' | null>(null);
 
+  // El cocinero pide también los menús desactivados (?todas=true) para poder reactivarlos.
+  // El cliente recibe solo los activos: el filtro lo hace la API.
   const cargar = () =>
-    pedirApi<Menu[]>('/api/menus')
+    pedirApi<Menu[]>(esCocinero ? '/api/menus?todas=true' : '/api/menus')
       .then(setMenus)
       .catch((e: ErrorApi) => avisar(e.message, 'error'));
 
@@ -62,6 +64,14 @@ export default function Menus({ esCocinero, avisar }: Props) {
     }
   }
 
+  // Activa o desactiva el menú sin borrarlo (borrado lógico): los datos y los pedidos se conservan.
+  function cambiarEstado(menu: Menu) {
+    hacer(
+      () => enviar(`/api/menus/${menu.id}/estado`, 'PATCH', { activo: !menu.activo }),
+      menu.activo ? 'Menú desactivado' : 'Menú activado',
+    );
+  }
+
   if (!menus) return <p className="vacio">Cargando menús…</p>;
   const visibles = menus.filter((m) => verAnteriores || m.fecha.slice(0, 10) >= hoy());
 
@@ -93,7 +103,7 @@ export default function Menus({ esCocinero, avisar }: Props) {
             <header>
               <h3>{formatearFecha(menu.fecha)}</h3>
               <span className={`etiqueta ${menu.abierto ? (menu.disponibles ? 'verde' : 'naranja') : 'gris'}`}>
-                {!menu.abierto ? 'Cerrado' : menu.disponibles ? `Quedan ${menu.disponibles}` : 'Agotado'}
+                {!menu.activo ? 'Desactivado' : !menu.abierto ? 'Cerrado' : menu.disponibles ? `Quedan ${menu.disponibles}` : 'Agotado'}
               </span>
             </header>
             {menu.imagen && <img className="foto" src={menu.imagen} alt={menu.descripcion} />}
@@ -110,6 +120,9 @@ export default function Menus({ esCocinero, avisar }: Props) {
               <div className="acciones">
                 <button className="boton secundario" onClick={() => setEditando(menu)}>
                   Editar
+                </button>
+                <button className="boton secundario" onClick={() => cambiarEstado(menu)}>
+                  {menu.activo ? 'Desactivar' : 'Activar'}
                 </button>
                 <button className="boton peligro" onClick={() => borrar(menu)}>
                   Borrar
