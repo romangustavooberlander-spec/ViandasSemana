@@ -45,15 +45,17 @@ model CodigoRecuperacion {
 }
 
 model MenuDia {
-  id          Int      @id @default(autoincrement())
-  fecha       DateTime @unique @db.Date
+  id          Int       @id @default(autoincrement())
+  fecha       DateTime  @unique @db.Date
   descripcion String
   cupoMaximo  Int
   horaCorte   String // formato "HH:mm", hora de Argentina
   precio      Int // precio de una vianda, en pesos
   imagen      String? // foto del plato como data URL (data:image/...;base64,...); null si no tiene
   pedidos     Pedido[]
-  creadoEn    DateTime @default(now())
+  creadoEn    DateTime  @default(now())
+  activo      Boolean   @default(true) // false = desactivado (borrado lógico), no se muestra ni acepta pedidos
+  fechaBaja   DateTime? // cuándo se desactivó; null si está activo
 }
 
 // Un pedido nace PENDIENTE_PAGO y guarda su lugar en el cupo hasta que se paga (CONFIRMADO),
